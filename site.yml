@@ -1,6 +1,6 @@
 ---
 - name: "Setup website"
-  hosts: webserver
+  hosts: all 
   become: yes
   remote_user: cloud-user
   vars:
