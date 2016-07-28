@@ -9,4 +9,3 @@
   action: template src=index.html.j2 dest={{www_root_path}}/index.html mode=644
 
 
-

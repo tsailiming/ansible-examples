@@ -1,8 +1,8 @@
 server {
     listen 80;
-    server_name demo.ltsai.com;
-
-    root /export/www;
+    server_name {{ floating_ip }};
+    
+    root {{ www_root_path }};
     access_log /var/log/nginx/www.access.log;
     error_log  /var/log/nginx/www.error.log;
 

@@ -1,3 +1,0 @@
-- name: reconfigure tzdata
-  action: command dpkg-reconfigure --frontend noninteractive tzdata
-

@@ -1,8 +1,13 @@
 ---
-- hosts: webserver 
-  remote_user: root
-
+- name: "Setup website"
+  hosts: webserver
+  become: yes
+  remote_user: cloud-user
+  vars:
+    - floating_ip: 192.168.0.247
+    - www_root_path: /export/www
+    - nginx_user: nginx
+  
   roles:
-    - setup
-
-- include: webserver.yml 
+    - geerlingguy.nginx
+    - website
