@@ -1,4 +1,4 @@
 ansible-examples
 ================
 
-A simple tutorial I did.
+A couple of examples I did
