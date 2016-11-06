@@ -1,8 +1,6 @@
 ---
 - name: Install WordPress, MariaDB, Nginx, and PHP-FPM
-  #remote_user: root
-  # remote_user: user
-  # sudo: yes
+  hosts: all
   become: yes
 
   roles:
