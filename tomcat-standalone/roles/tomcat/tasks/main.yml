@@ -41,6 +41,12 @@
   when: "ansible_os_family == 'RedHat' and ansible_distribution_major_version == '6'"
   notify: restart iptables
 
+- name: Install firewalld
+  yum: name=firewalld state=present
+
+- name: Start firewalld
+  service: name=firewalld state=started enabled=yes
+
 - name: insert firewalld rule for tomcat http port
   firewalld: port={{ http_port }}/tcp permanent=true state=enabled immediate=yes
   when: "ansible_os_family == 'RedHat' and ansible_distribution_major_version == '7'"
