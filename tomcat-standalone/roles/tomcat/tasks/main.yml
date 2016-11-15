@@ -34,7 +34,10 @@
   copy: src=tomcat-initscript.sh dest=/etc/init.d/tomcat mode=0755
 
 - name: Enable Tomcat init script
-  systemd: name=tomcat state=started enabled=yes
+  command: systemctl enable tomcat
+
+- name: Start Tomcat
+  service: name=tomcat state=started enabled=yes
 
 - name: deploy iptables rules
   template: src=iptables-save dest=/etc/sysconfig/iptables
