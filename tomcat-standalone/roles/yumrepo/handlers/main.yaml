@@ -1,0 +1,15 @@
+---
+
+- name: Delete unmanaged repos
+  shell: >
+    for F in $(ls -1 *.repo); do
+      egrep '^'$F'$' .managed || rm -f $F;
+    done;
+    true;
+  args:
+    chdir: /etc/yum.repos.d
+    executable: /bin/bash
+  changed_when: False
+  when: >
+    yumrepo_manage and
+    yumrepo_finish
