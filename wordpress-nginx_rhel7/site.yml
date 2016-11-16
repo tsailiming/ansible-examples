@@ -3,7 +3,17 @@
   hosts: all
   become: yes
 
+  vars:
+    yumrepo_repos:
+      rhel:
+        name: RHEL repo
+        baseurl: https://192.168.0.157/repos/rhel-7-x64/
+        enabled: true
+        gpgcheck: false
+        sslverify: false
+  
   roles:
+    - yumrepo
     - common
     - mariadb
     - nginx
