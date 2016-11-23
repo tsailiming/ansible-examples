@@ -1,0 +1,8 @@
+---
+- yum: name={{item}} state=present
+  with_items:
+   - mariadb-server
+   
+- name: Start MariaDB Service
+  service: name=mariadb state=started enabled=true
+
