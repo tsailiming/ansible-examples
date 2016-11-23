@@ -1,9 +1,9 @@
 ---
-- name: Install Java 1.7
+- name: Install {{ item }}
   yum: name={{ item }} state=present
   with_items:
-    - java-1.7.0-openjdk
     - haveged
+    - java-1.7.0-openjdk
 
 - name: add group "tomcat"
   group: name=tomcat
@@ -39,8 +39,11 @@
 - name: Enable Tomcat init script
   command: systemctl enable tomcat
 
-- name: Start Tomcat
-  service: name=tomcat state=started enabled=yes
+- name: Start {{ item }}
+  service: name={{ item }} state=started enabled=yes
+  with_items:
+    - haveged
+    - tomcat
 
 - name: deploy iptables rules
   template: src=iptables-save dest=/etc/sysconfig/iptables
