@@ -1,6 +1,0 @@
----
-postgresql_packages_default:
-  - postgresql
-  - postgresql-server
-  - postgresql-contrib
-  - python-psycopg2
