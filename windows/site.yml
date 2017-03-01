@@ -8,6 +8,7 @@
   tasks:
     - name: Get drives information
       raw: Get-PsDrive {{ item }} |select-object Free|ConvertTo-json
+      changed_when: no
       with_items:
         - C
         - D
@@ -28,6 +29,7 @@
   tasks:
     - name: Get service status
       raw: Get-Service {{ item }} | select-object Status | ConvertTo-Json
+      changed_when: no
       with_items: "{{ services }}"
       register: service_result
 
@@ -35,6 +37,8 @@
       with_items: "{{ service_result.results }}"
       when: "{{ (item.stdout | from_json).Status != 4 }}" #4 = running
 
+- name: Find mismatch application versions
+  hosts: windows
 
   vars:    
     - applications:
@@ -44,6 +48,7 @@
   tasks:
     - name: Get application version
       raw: Get-WmiObject Win32_Product -Filter "Name='{{ item.name }}'"| Select-Object Version | ConvertTo-Json
+      changed_when: no
       with_items: "{{ applications }}"
       register: app_results
 
