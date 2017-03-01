@@ -1,0 +1,127 @@
+---
+- name: Identify drives with low disk space
+  hosts: windows
+
+  vars:
+    - free_space_threshold_gb: 0.2
+
+  tasks:
+    - name: Get drives information
+      raw: Get-PsDrive {{ item }} |select-object Free|ConvertTo-json
+      with_items:
+        - C
+        - D
+      register: drive_space
+
+    - debug: msg="{{ item.item }} drive has {{(item.stdout | from_json).Free}}GB free space"        
+      with_items: "{{ drive_space.results }}"
+      when: "{{ (item.stdout | from_json).Free < free_space_threshold_gb*1024*1024*1024 }}"
+    
+- name: Determine services status
+  hosts: windows
+
+  vars:
+    - services:
+        - winrm
+        - bthserv # Bluetooth support service
+
+  tasks:
+    - name: Get service status
+      raw: Get-Service {{ item }} | select-object Status | ConvertTo-Json
+      with_items: "{{ services }}"
+      register: service_result
+
+    - debug: msg="Service {{ item.item }} is stopped"
+      with_items: "{{ service_result.results }}"
+      when: "{{ (item.stdout | from_json).Status != 4 }}" #4 = running
+
+
+  vars:    
+    - applications:
+        - { name: 'Java 8 Update 111 (64-bit)', version: '8.0.1110.14' }
+        - { name: 'VMware Client Integration Plug-in 5.5.0', version: '0'} # This should be be flagged
+
+  tasks:
+    - name: Get application version
+      raw: Get-WmiObject Win32_Product -Filter "Name='{{ item.name }}'"| Select-Object Version | ConvertTo-Json
+      with_items: "{{ applications }}"
+      register: app_results
+
+    - debug: msg="Application {{ item.item.name }} version mismatch"
+      with_items: "{{ app_results.results }}"
+      when: "{{ (item.stdout | from_json).Version != (applications | selectattr('name', 'equalto', item.item.name) | first).version }}" 
+
+# STIG roles on Ansible galaxy: https://galaxy.ansible.com/list#/roles?page=1&page_size=10&autocomplete=stig 
+- name: DISA STIG Windows 10
+  hosts: windows
+
+  vars:
+    # Due to the lack of -skip tag in Ansible 2.2 (https://github.com/ansible/ansible/pull/16342),
+    # we will use the var to explicitily state that we will want to patch, 
+    # $ ansible-playbook  -i ./hosts site.yml  -e patch_cat1=true
+    # otherwise is just an audit run by default
+    - patch_cat1: false 
+
+  tasks:
+    # https://www.stigviewer.com/stig/windows_10/2016-06-24/finding/V-63673
+    - name: "HIGH | V-63673 | AUDIT | Autoplay must be disabled for all drives."
+      win_reg_stat: 
+        key: HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\policies\Explorer
+        property: NoDriveTypeAutoRun
+      register: v_63673_audit
+      changed_when: no
+      ignore_errors: yes
+      failed_when: v_63673_audit.win_reg_stat.exists == false or (v_63673_audit.win_reg_stat.exists == true and v_63673_audit.win_reg_stat.value != 255)
+      tags:
+        - cat1
+        - high
+        - audit
+        - V-63673
+        - always
+
+    - name: "HIGH | V-63673 | PATCH | Autoplay must be disabled for all drives."
+      win_regedit:
+        path: HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\policies\Explorer
+        name: NoDriveTypeAutoRun
+        data: 255
+        type: dword
+        state: present
+      when: patch_cat1 and (v_63673_audit.win_reg_stat.exists == false or (v_63673_audit.win_reg_stat.exists == true and v_63673_audit.win_reg_stat.value != 255))
+      tags:
+        - cat1
+        - high
+        - patch
+        - V-63673
+
+
+# An alternate implmentaiton is to use the check-mode/dry-run for the audit run:
+# http://docs.ansible.com/ansible/playbooks_checkmode.html#check-mode-dry-run
+#
+# $ ansible-playbook  -i ./hosts a.yml --check
+#
+# If it's not compliant, ansible will show that it has make the changes without 
+# actually changing the remote system
+#
+# ---
+# - name: DISA STIG Windows 10
+#   hosts: windows
+
+#   tasks:
+#     - name: "HIGH | V-63673 | PATCH | Autoplay must be disabled for all drives."
+#       win_regedit:
+#         path: HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\policies\Explorer
+#         name: NoDriveTypeAutoRun
+#         data: 255
+#         type: dword
+#         state: present
+#       tags:
+#         - cat1
+#         - high
+#         - patch
+#         - V-63673
+
+        
+ 
+
+
+    
