@@ -99,7 +99,7 @@
         - V-63673
 
 
-# An alternate implmentaiton is to use the check-mode/dry-run for the audit run:
+# An alternate implementation is to use the check-mode/dry-run for the audit run:
 # http://docs.ansible.com/ansible/playbooks_checkmode.html#check-mode-dry-run
 #
 # $ ansible-playbook  -i ./hosts a.yml --check
