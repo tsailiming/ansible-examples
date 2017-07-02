@@ -1,11 +1,8 @@
 ---
 - name: dump all
-  hosts: all
-  vars:
-    - abc: def
-  tasks:
-   #- name: get variables
-   #  debug: var=hostvars[inventory_hostname]
+  hosts: localhost
+  connection: local
 
+  tasks:
     - name: Dump all vars
       template: src=dumpall.j2 dest=/tmp/ansible.all
