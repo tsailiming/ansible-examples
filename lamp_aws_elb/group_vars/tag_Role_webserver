@@ -1,0 +1,9 @@
+---
+# Variables for the web server configuration
+
+php_packages:
+  - php
+  - php-cli
+  - php-common
+  - php-devel
+  - php-mysql

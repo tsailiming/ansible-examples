@@ -1,0 +1,92 @@
+---
+- name: DBServer | Create DB Security Group
+  ec2_group:
+    name: "{{ item.sg_name }}"
+    description: "{{ item.sg_description }}"
+    region: "{{ vpc_region }}" # Change the AWS region here
+    vpc_id: "{{ vpc.vpc_id }}" # vpc is the resgister name, you can also set it manually
+    state: present
+    rules: "{{ item.sg_rules }}"
+  with_items: "{{ db_security_groups }}"
+  register: db_sg
+
+- name: DBServer | Tag the DB Security Group with a name
+  ec2_tag:
+    resource: "{{ item.group_id}}"
+    region: "{{ vpc_region }}"
+    state: present
+    tags:
+      Name: "{{ vpc_name }}-{{ item.item.sg_name }}"
+  with_items: "{{ db_sg.results }}"
+
+- ec2_instance_facts:
+    region: "{{ vpc_region }}"    
+    filters: 
+      "tag:Name": "{{ vpc_name }}_DB_Instance"
+      "tag:Role": "{{ db_role }}"
+      "tag:Application": "{{ application }}"
+      "instance-state-name": "stopped"
+  register: stopped_db
+
+- name: DBServer | Create the DBServer Instance(s)
+  ec2:
+    region: "{{ vpc_region }}"
+    instance_id: "{{ item.instance_id }}"
+    state: running
+    wait: True
+  with_items: "{{ stopped_db.instances }}"
+
+- ec2_instance_facts:
+    region: "{{ vpc_region }}"    
+    filters: 
+      "tag:Name": "{{ vpc_name }}_DB_Instance"
+      "tag:Role": "{{ db_role }}"
+      "tag:Application": "{{ application }}"
+      "instance-state-name": "running"
+  register: existing_db
+
+- name: Existing db instances
+  debug: "msg={{ existing_db.instances| map(attribute='instance_id') | list}}"
+
+- name: DBServer | Create the DBServer Instance(s)
+  ec2:
+    region: "{{ vpc_region }}"
+    group: "{{ db_security_groups[0].sg_name }}"
+    keypair: "{{ key_name }}"
+    instance_type: "{{ db_instance_type }}"
+    image: "{{ ami_id }}"
+    vpc_subnet_id: "{{ vpc.subnets[0].id }}"
+    assign_public_ip: True
+    wait: True
+    wait_timeout: 600
+    count: "{{ db_instance_count }}"
+    instance_tags:
+      Name: "{{ vpc_name }}_DB_Instance"
+      Role: "{{ db_role }}"
+      Application: "{{ application }}"
+  #register: db
+  when: db_instance_count - existing_db.instances|length > 0
+
+- ec2_instance_facts:
+    region: "{{ vpc_region }}"    
+    filters: 
+      "tag:Name": "{{ vpc_name }}_DB_Instance"
+      "tag:Role": "{{ db_role }}"
+      "tag:Application": "{{ application }}"
+      "instance-state-name": "running"
+  register: existing_db
+
+- name: DBServer | Wait for SSH to come up
+  wait_for:
+     host: "{{ item.public_ip_address }}" 
+     port: 22
+     delay: 20
+     timeout: 320
+     state: started
+  with_items: "{{ existing_db.instances}}"
+
+- add_host:
+    name: "{{ item.public_ip_address }}" 
+    groups: tag_Role_dbserver
+  with_items: "{{ existing_db.instances}}"
+

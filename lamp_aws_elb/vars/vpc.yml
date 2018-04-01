@@ -1,0 +1,25 @@
+---
+ # Variables for VPC
+ vpc_name: ansible-demo
+ vpc_region: ap-southeast-1
+ vpc_cidr_block: 172.25.0.0/16
+ public_cidr: 172.25.10.0/24
+ public_az: "{{ vpc_region }}a"
+
+ # Please don't change the variables below, until you know what you are doing
+ #
+ # Subnets Defination for VPC
+ vpc_subnets:
+   - cidr: "{{ public_cidr }}" # Public Subnet-1
+     az: "{{ public_az }}"
+     resource_tags: { "Name":"{{ vpc_name }}-{{ public_az }}-public-subnet" }
+
+ # Route table(s) for Subnets inside the VPC
+ #
+ # Routing Table for Public Subnet
+ public_subnet_rt:
+   - subnets:
+       - "{{ public_cidr }}"
+     routes:
+       - dest: 0.0.0.0/0
+         gw: igw

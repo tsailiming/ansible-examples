@@ -1,0 +1,86 @@
+---
+# Provision instances in AWS specific to the LAMP HA Proxy demo
+- name: Provision instances in AWS
+  hosts: localhost
+  connection: local
+  gather_facts: False
+
+  # load AWS variables from this group vars file
+  vars_files:
+    - vars/tags.yml
+    - vars/vpc.yml
+    - vars/ec2_key.yml
+    - vars/webserver.yml
+    - vars/db.yml
+    
+  tasks:
+    - include: tasks/vpc.yml
+    - include: tasks/webserver.yml
+    - include: tasks/db.yml
+    
+- name: Setup ec2 instances
+  hosts: all
+  become: yes
+  remote_user: "{{ remote_user }}"
+  
+  roles:
+    - common
+
+- name: Setup db instances
+  hosts: tag_Role_dbserver 
+  become: yes
+  remote_user: "{{ remote_user }}"
+  
+  vars_files:
+    - group_vars/tag_Role_dbserver
+
+  roles:
+    - role: geerlingguy.mysql
+      
+  post_tasks:
+    - name: Copy database dump file
+      copy:
+        src: files/dump.sql
+        dest: /tmp
+
+    - name: Restore database
+      mysql_db:
+        name: "{{ mysql_databases[0].name }}"
+        state: import
+        target: /tmp/dump.sql
+
+
+  tags:
+    - db
+
+- name: Setup web instances
+  hosts: tag_Role_webserver
+  become: yes
+  remote_user: "{{ remote_user }}"
+  
+  vars_files:
+    - group_vars/tag_Role_dbserver
+    
+  roles:
+    - geerlingguy.php  #base-apache
+    - web
+
+  tags:
+    - web
+
+- name: Setup ELB
+  hosts: localhost
+  connection: local
+  gather_facts: False
+
+  vars_files:
+    - vars/tags.yml
+    - vars/vpc.yml    
+    - vars/elb.yml
+    
+  tasks:
+    - include: tasks/elb.yml
+
+  tags:
+    - web
+

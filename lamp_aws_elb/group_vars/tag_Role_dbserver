@@ -1,0 +1,18 @@
+---
+# The variables file used by the playbooks in the dbservers group.
+# These don't have to be explicitly imported by vars_files: they are autopopulated.
+
+mysql_port: 3306
+
+mysql_root_password: system
+
+mysql_databases:
+  - name: foodb
+    encoding: latin1
+    collation: latin1_general_ci
+
+mysql_users:
+  - name: foodb
+    host: "%"
+    password: system
+    priv: "foodb.*:ALL"

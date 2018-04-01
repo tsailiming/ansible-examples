@@ -1,0 +1,21 @@
+---
+db_instance_type: t2.micro
+ 
+ami_id: ami-f068a193 # Centos 7 in ap-southeast-1
+
+db_instance_count: 1
+
+db_security_groups:
+  - sg_name: db-sg
+    sg_description: This sg is for db instance
+    sg_rules:
+      - proto: tcp
+        from_port: 22
+        to_port: 22
+        cidr_ip: 0.0.0.0/0
+      - proto: tcp
+        from_port: 3306
+        to_port: 3306
+        cidr_ip: 0.0.0.0/0
+
+ 

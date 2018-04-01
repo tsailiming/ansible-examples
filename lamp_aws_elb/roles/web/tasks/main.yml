@@ -1,0 +1,22 @@
+---
+- name: Install additional packages
+  yum: name={{ item }} state=present
+  with_items:
+   - mariadb
+   
+- name: Set httpd_can_network_connect flag on and keep it persistent across reboots
+  seboolean:
+    name: httpd_can_network_connect
+    state: yes
+    persistent: yes
+
+- name: Create index.php
+  template: 
+    src: index.php.j2 
+    dest: /var/www/html/index.php
+
+- name: Start httpd
+  service:
+    name: httpd
+    state: started
+    enabled: yes
