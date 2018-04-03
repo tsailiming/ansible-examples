@@ -18,6 +18,10 @@
     - include: tasks/webserver.yml
     - include: tasks/db.yml
     
+    - name: Waiting for all the vms to be actually up # Key pair to be actually be set by cloud-init
+      pause:
+        seconds: 15
+    
 - name: Setup ec2 instances
   hosts: all
   become: yes

@@ -80,7 +80,7 @@
   wait_for:
      host: "{{ item.public_ip_address }}" 
      port: 22
-     delay: 20
+     delay: 5
      timeout: 320
      state: started
   with_items: "{{ existing_db.instances}}"
