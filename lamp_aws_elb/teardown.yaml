@@ -1,0 +1,31 @@
+---
+# Provision instances in AWS specific to the LAMP HA Proxy demo
+- name: Provision instances in AWS
+  hosts: localhost
+  connection: local
+  gather_facts: False
+
+  # load AWS variables from this group vars file
+  vars_files:
+    - vars/tags.yml
+    - vars/vpc.yml
+    
+  tasks:
+    - ec2_instance_facts:
+        region: "{{ vpc_region }}"
+        filters: 
+          "tag:Application": "{{ application }}"
+      register: ec2 
+
+    #- debug: "msg={{ec2}}"
+
+    - name: Remove instances
+      ec2:
+        region: "{{ vpc_region }}"
+        instance_ids: "{{ item.instance_id }}"
+        state: absent
+      with_items: "{{ ec2.instances }}"
+
+
+
+
