@@ -1,0 +1,54 @@
+- name: Shutdown web instance
+  hosts: localhost
+  connection: local
+  gather_facts: False
+
+  vars_files:
+    - vars/tags.yml
+    - vars/vpc.yml  
+    - vars/elb.yml  
+
+  tasks:
+    - ec2_instance_facts:
+        region: "{{ vpc_region }}"
+        filters: 
+          "tag:Name": "{{ vpc_name }}_WEB_Instance"
+          "tag:Role": "{{ server_role }}"
+          "tag:Application": "{{ application }}"
+          "instance-state-name": "running"
+      register: existing_web 
+
+    - set_fact:
+        ansible_ec2_instance_id: "{{ existing_web.instances | map(attribute='instance_id') | list | random }}"
+
+    - set_fact:
+        public_ip_address: "{{ (existing_web.instances | selectattr('instance_id', 'equalto', ansible_ec2_instance_id) | first).public_ip_address }}"
+      
+    - name: Remove EC2 instance from ELB
+      ec2_elb:
+        region: "{{ vpc_region }}"
+        ec2_elbs: "{{ load_balancer_name }}"
+        instance_id: "{{ ansible_ec2_instance_id }}"
+        state: absent
+      delegate_to: 127.0.0.1
+
+    - name: Shutdown httpd
+      service:
+        name: httpd
+        state: stopped
+      become: yes
+      delegate_to: "{{ public_ip_address }}"
+
+    # Sleep to prevent "Failed to connect to the host via ssh" error
+    - name: Shutdown instance
+      shell: "sleep 2 && /sbin/poweroff"
+      become: yes
+      delegate_to: "{{ public_ip_address }}"
+      async: 1
+      poll: 0
+      ignore_errors: true
+
+    - name: wait go down
+      local_action: wait_for host={{ public_ip_address }} port=22 state=stopped
+
+    
