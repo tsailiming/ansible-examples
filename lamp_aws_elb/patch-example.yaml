@@ -1,0 +1,68 @@
+- name: Discover web instances
+  hosts: localhost
+  connection: local
+  gather_facts: False
+
+  vars_files:
+    - vars/tags.yml
+    - vars/vpc.yml    
+
+  tasks:
+    - ec2_instance_facts:
+        region: "{{ vpc_region }}"
+        filters: 
+          "tag:Name": "{{ vpc_name }}_WEB_Instance"
+          "tag:Role": "{{ server_role }}"
+          "tag:Application": "{{ application }}"
+          "instance-state-name": "running"
+      register: existing_web 
+
+    - add_host:
+        name: "{{ item.public_ip_address }}" 
+        groups: tag_Role_webserver
+      with_items: "{{ existing_web.instances}}"
+
+- name: Patch web instances with the latest update
+  hosts: tag_Role_webserver
+  gather_facts: False
+  serial: 1 # I am updating it 1 by 1
+
+  vars_files:
+    - vars/tags.yml
+    - vars/vpc.yml    
+    - vars/elb.yml
+
+  tasks:
+    - name: Gather facts
+      ec2_facts:
+      
+    - name: Remove EC2 instance from ELB
+      ec2_elb:
+        region: "{{ vpc_region }}"
+        ec2_elbs: "{{ load_balancer_name }}"
+        instance_id: "{{ ansible_ec2_instance_id }}"
+        state: absent
+      delegate_to: 127.0.0.1
+
+    - name: Update packages
+      yum:
+        name: "{{ item }}"
+        state: latest
+      with_items:
+        - httpd
+        - php
+      become: yes
+
+    - name: Restart webserver
+      service:
+        name: httpd
+        state: restarted
+      become: yes
+
+    - name: Adding EC2 instance back to the ELB
+      ec2_elb:
+        region: "{{ vpc_region }}"
+        ec2_elbs: "{{ load_balancer_name }}"
+        instance_id: "{{ ansible_ec2_instance_id }}"
+        state: present
+      delegate_to: 127.0.0.1
