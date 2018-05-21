@@ -1,0 +1,10 @@
+---
+# defaults file for register_to_satellite
+#
+sat6_fqdn: 
+activationkey:  
+admin_user: 
+admin_pass: 
+org: 
+loc: 
+hostgroup: 

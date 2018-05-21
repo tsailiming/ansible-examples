@@ -1,0 +1,83 @@
+---
+- hosts: localhost
+  connection: local
+  gather_facts: false
+
+  vars:
+    - ip_address: "192.168.0.178"
+    - host_name: "test-scap.lab.ltsai.com"
+   
+  tasks:
+    #ovirt_username: 
+    #ovirt_password: 
+    - include_vars: accounts.yml
+
+    - name: Obtain SSO token with using username/password credentials
+      ovirt_auth:
+        url: https://rhvm.lab.ltsai.com/ovirt-engine/api
+        username: "{{ ovirt_username }}"
+        password: "{{ ovirt_password }}"
+        insecure: yes
+      register: ovirt_auth
+
+    - name: Provision VM
+      ovirt_vms:
+        auth: "{{ ovirt_auth }}"
+        name: "{{ host_name }}"
+        template: rhel_7_5_w_cloud_user
+        cluster: Default
+        memory: 2GiB
+        cpu_cores: 2
+        cpu_sockets: 1
+        clone: yes
+        state: running
+        cloud_init:
+          host_name: "{{ host_name }}"
+          nic_boot_protocol: static
+          nic_ip_address: "{{ ip_address }}"
+          nic_netmask: 255.255.255.0
+          nic_gateway: 192.168.0.1
+          dns_servers: 192.168.0.212
+          dns_search: lab.ltsai.com
+          nic_name: eth0
+          nic_on_boot: true
+          user_name: root
+          root_password: super_password 
+
+    - name: Wait for SSH to be up
+      local_action: wait_for host={{ ip_address }} port=22 state=started delay=5
+      become: no
+
+    - add_host:
+        name: "{{ ip_address }}"
+        groups: web
+        
+- hosts: web
+  become: yes
+  gather_facts: yes
+  remote_user: cloud-user
+
+  vars: 
+    - sat6_fqdn: "sat6.lab.ltsai.com"
+    - activationkey: "rhel-7Server,os_nginx"  
+    - admin_user: admin
+    - admin_pass: system
+    - org: IT
+    - loc: Primary-DC
+    - hostgroup: RHEL7-dev-nginx
+
+    - openscap_policies_rhel7:
+        - policy_id: 1
+          profile_id: xccdf_org.ssgproject.content_profile_C2S
+          content_path: /usr/share/xml/scap/ssg/content/ssg-rhel7-ds.xml
+          download_path: /compliance/policies/1/content
+
+  roles:
+    - ../roles/register_to_satellite
+    - ../roles/foreman_scape_client
+    - ../roles/RHEL7-CIS
+
+  post_tasks:
+    - name: Running the OpenSCAP client policies
+      shell: "/usr/bin/foreman_scap_client {{ item.policy_id }}"
+      with_items: "{{ openscap_policies_rhel7 }}"

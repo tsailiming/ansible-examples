@@ -1,0 +1,9 @@
+*.swp
+*.retry
+.DS_Store
+test.yml
+tests/local-test.yml
+tests/.vagrant
+tests/Vagrantfile
+tests/test-inv
+tests/*.retry
