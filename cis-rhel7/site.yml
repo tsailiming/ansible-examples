@@ -12,4 +12,5 @@
         - which
 
   roles:
-    - role: RHEL7-CIS
+    - ../roles/RHEL7-CIS
+      
