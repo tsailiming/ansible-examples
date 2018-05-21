@@ -9,12 +9,12 @@ host_private_key:     /etc/pki/consumer/key.pem
 
 satellite_version:    6.3
 
-# cron settings
-minute: "*"
-hour: "*"
+# cron settings At 02:00 on Sunday
+minute: "0"
+hour: "2"
 day: "*"
-weekday: "1"
 month: "*"
+weekday: "0"
 
 openscap_policies_rhel6:
   - policy_id: 1
