@@ -1,0 +1,13 @@
+---
+- name: Stop service
+  service:
+    name: "{{ service_name }}"
+    state: stopped
+    #enabled: no
+
+- name: Verify service is stopped
+  shell: systemctl status "{{ service_name }}" | head -n 3
+  register: output
+  ignore_errors: yes
+
+- debug: msg="{{ output.stdout }}"

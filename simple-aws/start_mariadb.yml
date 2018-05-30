@@ -1,0 +1,9 @@
+- name: Start MariaDB
+  hosts: tag_Name_mariadb_demo
+  become: yes
+  
+  vars:
+    service_name: mariadb
+
+  roles:
+    - start-service

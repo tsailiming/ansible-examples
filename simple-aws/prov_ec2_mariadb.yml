@@ -1,0 +1,31 @@
+---
+- name: Provision EC2 instance
+  hosts: localhost
+  connection: local
+  gather_facts: no
+  
+  vars:
+    ec2_server_keypair: redhat_laptop
+    ec2_server_name: mariadb-demo
+    ec2_server_security_group: db-sg
+    ec2_vpc_subnet_id: subnet-00703749
+    ec2_server_group_name: mariadb-hosts
+
+    #Defaults in role
+    #ec2_server_image: 'ami-f068a193' # Centos 7 in ap-southeast-1
+    #ec2_server_region: ap-southeast-1
+    #ec2_instance_type: t2.micro
+
+  roles:
+    - create-ec2
+
+- name: Install MariaDB
+  hosts: mariadb-hosts
+  become: yes
+  
+  vars:
+    package_name: mariadb-server
+    service_name: mariadb
+
+  roles:
+    - install-package

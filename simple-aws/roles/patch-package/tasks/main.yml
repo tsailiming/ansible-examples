@@ -1,0 +1,23 @@
+---
+- name: Get package version
+  shell: rpm -qa | grep "{{ package_name }}"
+  register: old_output
+
+- debug: msg="Old Version = {{ old_output.stdout }}"
+
+- name: Update package
+  yum:
+    name: "{{ package_name }}"
+    state: latest
+
+- name: Get package version
+  shell: rpm -qa | grep "{{ package_name }}"
+  register: new_output
+
+- debug: msg="New Version = {{ new_output.stdout }}"
+
+- name: Restart service
+  service:
+    name: "{{ service_name }}"
+    state: restarted
+    enabled: yes

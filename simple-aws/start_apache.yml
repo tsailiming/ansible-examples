@@ -1,0 +1,9 @@
+- name: Start Apache
+  hosts: tag_Name_apache_demo
+  become: yes
+  
+  vars:
+    service_name: httpd
+
+  roles:
+    - start-service

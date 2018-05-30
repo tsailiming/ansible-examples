@@ -1,0 +1,5 @@
+---
+ec2_server_security_group: sg-6a4ad513
+ec2_server_keypair: redhat_laptop
+ec2_vpc_subnet_id: subnet-00703749
+

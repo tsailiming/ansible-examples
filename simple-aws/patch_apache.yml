@@ -1,0 +1,10 @@
+- name: Patch Apache
+  hosts: tag_Name_apache_demo
+  become: yes
+  
+  vars:
+    package_name: httpd
+    service_name: httpd
+
+  roles:
+    - patch-package

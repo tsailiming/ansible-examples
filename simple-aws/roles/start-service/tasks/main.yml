@@ -1,0 +1,12 @@
+---
+- name: Start service
+  service:
+    name: "{{ service_name }}"
+    state: started
+    #enabled: no
+
+- name: Verify service is started
+  shell: systemctl status "{{ service_name }}" | head -n 3
+  register: output
+  
+- debug: msg="{{ output.stdout }}"
