@@ -1,7 +1,8 @@
 ---
 ec2_server_instcount: 1
 ec2_instance_type: t2.micro
-ec2_server_image: 'ami-f068a193' # Centos 7 in ap-southeast-1
+ec2_server_image: 'ami-2c95344f' #rhel 7 
+#'ami-f068a193' # Centos 7 in ap-southeast-1
 ec2_server_region: 'ap-southeast-1'
 ec2_server_pem_path: ''
 ec2_server_group_name: 'ec2_server_hosts'
