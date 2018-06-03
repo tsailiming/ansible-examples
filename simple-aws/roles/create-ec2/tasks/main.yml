@@ -19,6 +19,11 @@
   debug: msg={{ item.id }}
   with_items: "{{ ec2.instances }}"
 
+- set_fact:
+    new_vm_uuid: "{{ec2.instances[0].id}}"
+
+- debug: var=new_vm_uuid
+
 - name: Wait for SSH
   wait_for:
     host: "{{ item.public_dns_name }}"
