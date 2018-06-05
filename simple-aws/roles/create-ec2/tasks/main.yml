@@ -11,17 +11,42 @@
     wait: True
     wait_timeout: 600
     count: "{{ ec2_server_instcount }}"
-    instance_tags:
-      Name: "{{ ec2_server_name }}"
+    #instance_tags:
+    #  Name: "{{ item }}"
   register: ec2
+  #with_sequence: start={{name_start_index}} end={{name_start_index + ec2_server_instcount}} format={{ name_format }}
+
+- debug: var=ec2
 
 - name: Instance Ids
   debug: msg={{ item.id }}
   with_items: "{{ ec2.instances }}"
+  
+- name: Set name tag for AWS instances                                                                                                                                                                                                                                                                                 
+  ec2_tag:                                                                                                                                                                                                                                                                                                             
+    region: "{{ ec2_server_region }}"
+    resource: "{{ item.1.id }}"
+    tags: 
+      Name: "{{ name_prefix + '%02d' | format(item.0 + name_start_index) }}"
+  with_indexed_items: "{{ ec2.instances }}"
+  loop_control:
+    label: item.1.id
+    #label: "{{ item.1.id }} - {{ aws_tags.Name }}-{{ '%02d' | format(item.0 + 1) }}"
+
+- name: Set other tag for AWS instances                                                                                                                                                                                                                                                                                 
+  ec2_tag:                                                                                                                                                                                                                                                                                                             
+    region: "{{ ec2_server_region }}"
+    resource: "{{ item.id }}"
+    tags: "{{ec2_tags}}"
+  with_items: "{{ ec2.instances }}"
+  loop_control:
+    label: item.id
+  when:
+    ec2_tags is defined
 
 - set_fact:
-    new_vm_uuid: "{{ec2.instances[0].id}}"
-
+    new_vm_uuid: "{{ec2.instances[0].id}}" 
+   
 - debug: var=new_vm_uuid
 
 - name: Wait for SSH

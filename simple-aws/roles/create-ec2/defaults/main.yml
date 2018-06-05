@@ -19,3 +19,7 @@ required_vars:
   - ec2_instance_type
   - ec2_vpc_subnet_id
   
+name_start_index: 0
+name_prefix: 
+
+#ec2_tags:
