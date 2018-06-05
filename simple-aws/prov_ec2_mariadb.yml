@@ -11,7 +11,7 @@
     - ec2_server_group_name: mariadb-hosts
     - ec2_server_image: ami-f068a193
     - ec2_server_instcount: 2
-    - name_start_index: 10
+    - name_start_index: 20
     - name_prefix: "VMANSADV"
 
     #Defaults in role
@@ -24,9 +24,15 @@
         Project: ANSIBLE
         WBS_CODE: ISG18-B3B
         Vendor: RedHat
+    
+    - tower_inventory_name: "VMANSADV"
+    #- tower_host: 
+    #- tower_username: 
+    #- tower_password: 
 
   roles:
-    - create-ec2
+    - { role: create-ec2 }
+    - { role: add-to-tower, when: tower_host is defined }
 
 - name: Install MariaDB
   hosts: mariadb-hosts

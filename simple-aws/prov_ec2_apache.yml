@@ -25,9 +25,14 @@
         WBS_CODE: ISG18-B3B
         Vendor: RedHat
 
+    - tower_inventory_name: "VMANSADV"
+    #- tower_host: 
+    #- tower_username: 
+    #- tower_password: 
 
   roles:
-    - create-ec2
+    - { role: create-ec2 }
+    - { role: add-to-tower, when: tower_host is defined }
 
 - name: Install Apache
   hosts: apache-hosts
