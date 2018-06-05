@@ -6,7 +6,6 @@
   
   vars:
     - ec2_server_keypair: redhat_laptop
-    - ec2_server_name: apache-demo
     - ec2_server_security_group: web-sg
     - ec2_vpc_subnet_id: subnet-00703749
     - ec2_server_group_name: apache-hosts

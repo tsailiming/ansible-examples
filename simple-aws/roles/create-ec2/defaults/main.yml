@@ -8,7 +8,6 @@ ec2_server_pem_path: ''
 ec2_server_group_name: 'ec2_server_hosts'
 
 ec2_server_keypair: ''
-ec2_server_name: ''
 
 required_vars:
   - ec2_server_region
