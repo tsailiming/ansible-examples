@@ -1,5 +1,5 @@
 - name: Stop MariaDB
-  hosts: tag_Name_mariadb_demo
+  hosts: mariadb-hosts
   become: yes
   
   vars:

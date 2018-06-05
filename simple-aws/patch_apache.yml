@@ -1,5 +1,5 @@
 - name: Patch Apache
-  hosts: tag_Name_apache_demo
+  hosts: apache-hosts
   become: yes
   
   vars:
