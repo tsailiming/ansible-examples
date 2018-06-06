@@ -13,6 +13,7 @@
     - ec2_server_instcount: 2
     - name_start_index: 20
     - name_prefix: "VMANSADV"
+    - ec2_assign_public_ip: true
 
     #Defaults in role
     #ec2_server_image: 'ami-f068a193' # Centos 7 in ap-southeast-1
