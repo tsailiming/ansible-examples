@@ -11,11 +11,8 @@
     wait: True
     wait_timeout: 600
     count: "{{ ec2_server_instcount }}"
-    #instance_tags:
-    #  Name: "{{ item }}"
   register: ec2
-  #with_sequence: start={{name_start_index}} end={{name_start_index + ec2_server_instcount}} format={{ name_format }}
-
+  
 - debug: var=ec2
 
 - name: Instance Ids
@@ -27,12 +24,11 @@
     region: "{{ ec2_server_region }}"
     resource: "{{ item.1.id }}"
     tags: 
-      Name: "{{ name_prefix + '%02d' | format(item.0 + name_start_index) }}"
+      Name: "{{ name_prefix + '%02d' | format(item.0 + name_start_index) if ec2_server_name is not defined else ec2_server_name}}"
   with_indexed_items: "{{ ec2.instances }}"
   loop_control:
     label: item.1.id
-    #label: "{{ item.1.id }} - {{ aws_tags.Name }}-{{ '%02d' | format(item.0 + 1) }}"
-
+    
 - name: Set other tag for AWS instances                                                                                                                                                                                                                                                                                 
   ec2_tag:                                                                                                                                                                                                                                                                                                             
     region: "{{ ec2_server_region }}"
@@ -49,6 +45,17 @@
    
 - debug: var=new_vm_uuid
 
+- name: Gather facts about an AMI using ami-id
+  ec2_ami_facts:
+    region: "{{ ec2_server_region }}"
+    image_ids: "{{ ec2_server_image }}"
+  register: ami_info
+
+- set_fact:
+    ami_name: "{{ami_info.images[0].name | lower}}"
+
+- debug: var=ami_name
+
 - name: Wait for SSH
   wait_for: 
     host: "{{ item.public_dns_name if ec2_assign_public_ip else item.private_dns_name }}"
@@ -57,6 +64,7 @@
     timeout: 320
     state: started
   with_items: "{{ ec2.instances }}"
+  when: '"windows" not in ami_name'
 
 - name: Add hosts group temporary inventory group
   add_host:

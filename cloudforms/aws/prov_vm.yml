@@ -1,0 +1,29 @@
+---
+- hosts: localhost
+  connection: local
+  gather_facts: no
+
+  vars:
+    - provider_id: 1000000000005
+    - manageiq_host: 192.168.0.169
+    - manageiq_username: admin
+    - manageiq_password: smartvm
+    
+    - ec2_server_keypair: redhat_laptop
+    - ec2_server_security_group: web-sg
+    - ec2_vpc_subnet_id: subnet-00703749
+    - ec2_server_group_name: new-vms
+    - ec2_instance_type: #t2.micro
+    - ec2_server_image: #'ami-2c95344f' #rhel 7 
+
+  pre_tasks:
+    - debug: var=ec2_instance_type
+    - debug: var=ec2_server_image
+    - debug: var=hostname
+
+    - set_fact:
+        ec2_server_name: "{{hostname}}"
+    
+  roles:
+    - ../../simple-aws/roles/create-ec2
+    - ../../roles/register-manageiq

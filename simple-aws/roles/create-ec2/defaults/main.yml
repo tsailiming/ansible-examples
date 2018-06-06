@@ -21,6 +21,6 @@ required_vars:
   - ec2_vpc_subnet_id
   
 name_start_index: 0
-name_prefix: 
+name_prefix: aws-test
 
 #ec2_tags:
