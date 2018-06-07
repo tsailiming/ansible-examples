@@ -21,5 +21,9 @@ web_security_groups:
         from_port: 8080
         to_port: 8080
         cidr_ip: 0.0.0.0/0
+      - proto: tcp #RDP
+        from_port: 3389
+        to_port: 3389
+        cidr_ip: 0.0.0.0/0
        
  
