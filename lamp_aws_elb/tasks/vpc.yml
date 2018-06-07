@@ -27,6 +27,7 @@
 - name: VPC | Create subnet
   ec2_vpc_subnet:
     state: present
+    region: "{{ vpc_region }}"
     az: "{{ vpc_subnets[0].az }}"
     vpc_id: "{{ vpc_id }}"
     cidr: "{{ vpc_subnets[0].cidr }}"
@@ -35,7 +36,7 @@
 
 - set_fact:
     subnet_id: "{{ subnet.subnet.id }}"
-    
+
 - name: VPC | Create IGW 
   ec2_vpc_igw:
     vpc_id: "{{ vpc_id }}"
