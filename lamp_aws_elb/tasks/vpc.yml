@@ -1,14 +1,60 @@
 ---
- - name: VPC | Creating an AWS VPC inside mentioned Region
-   ec2_vpc:
-     region: "{{ vpc_region }}"
-     state: present
-     cidr_block: "{{ vpc_cidr_block }}"
-     resource_tags: { "Name":"{{ vpc_name }}-vpc"}
-     subnets: "{{ vpc_subnets }}" 
-     internet_gateway: yes
-     route_tables: "{{ public_subnet_rt }}"
-   register: vpc
+- name: VPC | Creating an AWS VPC inside mentioned Region
+   # ec2_vpc:
+   #   region: "{{ vpc_region }}"
+   #   state: present
+   #   cidr_block: "{{ vpc_cidr_block }}"
+   #   resource_tags: { "Name":"{{ vpc_name }}-vpc"}
+   #   subnets: "{{ vpc_subnets }}" 
+   #   internet_gateway: yes
+   #   route_tables: "{{ public_subnet_rt }}"
+   # register: vpc
+
+  ec2_vpc_net:
+    name: "{{ vpc_name }}-vpc"
+    region: "{{ vpc_region }}"
+    cidr_block: "{{ vpc_cidr_block }}"
+    tags: 
+      Name: "{{ vpc_name }}-vpc"
+    state: present    
+  register: vpc
+
+- set_fact:
+    vpc_id: "{{ vpc.vpc.id }}"
+
+- debug: var=vpc_id
+
+- name: VPC | Create subnet
+  ec2_vpc_subnet:
+    state: present
+    az: "{{ vpc_subnets[0].az }}"
+    vpc_id: "{{ vpc_id }}"
+    cidr: "{{ vpc_subnets[0].cidr }}"
+    resource_tags: "{{ vpc_subnets[0].resource_tags }}"
+  register: subnet
+
+- set_fact:
+    subnet_id: "{{ subnet.subnet.id }}"
+    
+- name: VPC | Create IGW 
+  ec2_vpc_igw:
+    vpc_id: "{{ vpc_id }}"
+    region: "{{ vpc_region }}"
+    state: present
+  register: igw
+
+- name: VPC | Set up public subnet route table
+  ec2_vpc_route_table:
+    vpc_id: "{{ vpc_id }}"
+    region: "{{ vpc_region }}"
+    tags:
+      Name: Public
+    subnets: "{{ public_cidr }}"
+    routes:
+      - dest: 0.0.0.0/0
+        gateway_id: "{{ igw.gateway_id }}"
+  register: public_route_table
+
 
  # - name: VPC | Write vpc id to file inside the vars directory
  #   shell: echo "{{ vpc.vpc_id }}" > "{{ vpc_name }}-vpc-info.yml"

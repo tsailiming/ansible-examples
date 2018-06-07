@@ -10,9 +10,10 @@
  #
  # Subnets Defination for VPC
  vpc_subnets:
-   - cidr: "{{ public_cidr }}" # Public Subnet-1
-     az: "{{ public_az }}"
-     resource_tags: { "Name":"{{ vpc_name }}-{{ public_az }}-public-subnet" }
+  - cidr: "{{ public_cidr }}" # Public Subnet-1
+    az: "{{ public_az }}"
+    resource_tags: 
+      Name: "{{ vpc_name }}-{{ public_az }}-public-subnet"
 
  # Route table(s) for Subnets inside the VPC
  #

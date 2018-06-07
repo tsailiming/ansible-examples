@@ -4,7 +4,7 @@
     name: "{{ item.sg_name }}"
     description: "{{ item.sg_description }}"
     region: "{{ vpc_region }}" # Change the AWS region here
-    vpc_id: "{{ vpc.vpc_id }}" # vpc is the resgister name, you can also set it manually
+    vpc_id: "{{ vpc_id }}" # vpc is the resgister name, you can also set it manually
     state: present
     rules: "{{ item.sg_rules }}"
   with_items: "{{ db_security_groups }}"
@@ -55,7 +55,7 @@
     keypair: "{{ key_name }}"
     instance_type: "{{ db_instance_type }}"
     image: "{{ ami_id }}"
-    vpc_subnet_id: "{{ vpc.subnets[0].id }}"
+    vpc_subnet_id: "{{ subnet_id }}"
     assign_public_ip: True
     wait: True
     wait_timeout: 600
