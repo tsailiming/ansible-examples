@@ -40,7 +40,7 @@
   become: yes
 
   vars:
-    package_name: mariadb-5.5.52-1.el7.x86_64
+    package_name: mariadb-sever-5.5.52-1.el7.x86_64
     service_name: mariadb
 
   roles:
