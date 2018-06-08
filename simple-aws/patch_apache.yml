@@ -5,6 +5,7 @@
   vars:
     package_name: httpd
     service_name: httpd
-
+    ec2_server_region: 'ap-southeast-1'
+    
   roles:
     - patch-package
