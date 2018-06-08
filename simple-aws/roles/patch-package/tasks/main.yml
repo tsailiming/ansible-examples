@@ -3,7 +3,7 @@
 
 - name: Taking snapshot on /dev/sda1
   ec2_snapshot:
-    region: "{{ ec2_server_region }}"
+    region: "{{ ansible_ec2_placement_region }}"
     instance_id: "{{ ansible_ec2_instance_id }}"
     device_name: /dev/sda1
     description: snapshot of /dev/sda1
