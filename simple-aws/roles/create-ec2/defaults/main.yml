@@ -10,6 +10,7 @@ ec2_server_group_name: 'ec2_server_hosts'
 ec2_server_keypair: ''
 
 ec2_assign_public_ip: true
+ansible_ec2_use_public_ip: true
 
 required_vars:
   - ec2_server_region

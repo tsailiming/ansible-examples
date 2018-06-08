@@ -28,7 +28,7 @@
     tower_username: "{{ tower_username }}"
     tower_password: "{{ tower_password }}"
     tower_verify_ssl: no
-    variables: "ansible_ssh_host: {{ item.1.public_dns_name if ec2_assign_public_ip else item.1.private_ip }}"
+    variables: "ansible_ssh_host: {{ item.1.public_dns_name if ansible_ec2_use_public_ip else item.1.private_ip }}"
   with_indexed_items: "{{ ec2.instances }}"  
   
 # https://github.com/ansible/ansible/issues/29149
