@@ -1,5 +1,5 @@
 ---
-- ec2_facts:
+- ec2_metadata_facts:
 
 - name: Taking snapshot on /dev/sda1
   ec2_snapshot:
