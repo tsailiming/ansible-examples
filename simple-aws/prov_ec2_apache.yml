@@ -40,7 +40,7 @@
   become: yes
   
   vars:
-    package_name: httpd
+    package_name: httpd-2.4.6-45.el7_3.4.x86_64
     service_name: httpd
 
   roles:
