@@ -1,12 +1,20 @@
 ---
 - ec2_metadata_facts:
 
+# - ec2_instance_facts:
+#     region: "{{ ansible_ec2_placement_region }}"
+#     instance_ids: "{{ ansible_ec2_instance_id }}"
+#   delegate_to: 127.0.0.1
+#   become: no
+#   register: ec2_info
+
 - name: Taking snapshot on /dev/sda1
   ec2_snapshot:
     region: "{{ ansible_ec2_placement_region }}"
     instance_id: "{{ ansible_ec2_instance_id }}"
     device_name: /dev/sda1
-    description: snapshot of /dev/sda1
+    description: "snapshot of /dev/sda1 for {{ ansible_ec2_instance_id }}"
+    #snapshot_tags: "{{ ec2_info.instances[0].tags }}"
   delegate_to: 127.0.0.1
   become: no
     
