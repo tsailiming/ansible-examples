@@ -6,6 +6,7 @@
     instance_id: "{{ ansible_ec2_instance_id }}"
     device_name: /dev/sda1
     description: snapshot of /dev/sda1
+  delegate_to: 127.0.0.1
     
 - name: Get package version
   shell: rpm -qa | grep "{{ package_name }}"
