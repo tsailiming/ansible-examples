@@ -17,13 +17,19 @@
     - "vars/{{ env }}.yml"
   
   tasks:
-    - name: Obtain SSO token with using username/password credentials
+    - name: Obtain oVirt SSO token with using username/password credentials
       ovirt_auth:
         url: "https://{{ ovirt_host }}/ovirt-engine/api"
         username: "{{ ovirt_username }}"
         password: "{{ ovirt_password }}"
         insecure: yes
       when: ovirt_host is defined
+
+    - name: Obtain oVirt SSO token (Tower)
+      ovirt_auth:
+        state: present
+        insecure: yes
+      when: ovirt_host is not defined
 
     # - debug: var=vms
     # - debug: var=vm_cloud_init_info
