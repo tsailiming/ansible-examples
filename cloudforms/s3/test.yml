@@ -1,0 +1,66 @@
+---
+- name: Create AWS S3 bucket
+  hosts: localhost
+  connection: local
+  gather_facts: no
+
+  vars:
+    - cf_host: 
+    - cf_username: 
+    - cf_password: 
+    - generic_definition: "1000000000002"
+
+  tasks:
+    - name: Get services # This needs to be provided by automate method to pass the actual service id
+      uri:
+        url: "https://{{ cf_host }}/api/services"
+        method: GET
+        return_content: yes
+        user: "{{ cf_username }}"
+        password: "{{ cf_password }}"
+        validate_certs: no
+        body_format: json
+        headers:
+          Content-Type: "application/json"
+      register: service
+
+    - debug: msg="{{ service.json.resources|last|json_query('href') }}"
+
+    - name: Create CloudForms Generic object instance
+      uri:
+        url: "https://{{ cf_host }}/api/generic_objects"
+        method: POST
+        user: "{{ cf_username }}"
+        password: "{{ cf_password }}"
+        validate_certs: no
+        headers:
+          Content-Type:  application/json
+        body_format: json
+        body:
+          action: create
+          name: "test-123" 
+          generic_object_definition:
+            href: "https://{{ cf_host }}/api/generic_object_definitions/{{ generic_definition }}"
+          associations:
+            service:
+              - href: "{{ service.json.resources|last|json_query('href') }}" #"https://{{ cf_host }}/api/services/{{ service_id }}"
+      register: genobject
+      
+
+    - debug: "msg={{ genobject.json.results[0].href }}"
+
+    - name: add generic object to service
+      uri:
+        url: "{{ service.json.resources|last|json_query('href') }}" #"https://{{ cf_host }}/api/services/{{ service_id }}" #"{{ service.json.resources|last|json_query('href') }}"
+        method: POST
+        user: "{{ cf_username }}"
+        password: "{{ cf_password }}"
+        validate_certs: no
+        headers:
+          Content-Type:  application/json
+        body_format: json
+        body:
+          action: add_resource
+          resource:
+            resource: 
+              href: "{{ genobject.json.results[0].href }}"

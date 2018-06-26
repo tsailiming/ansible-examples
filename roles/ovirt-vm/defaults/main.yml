@@ -1,0 +1,6 @@
+---
+# defaults file for ovirt-vm
+#
+ovirt_username: 
+ovirt_password:
+ovirt_host: 

@@ -1,0 +1,40 @@
+---
+- hosts: localhost
+  connection: local
+  gather_facts: no
+
+  vars:
+    - provider_id: 1000000000001
+    - manageiq_host: 
+    - manageiq_username: 
+    - manageiq_password: 
+    - ovirt_username: 
+    - ovirt_password: 
+    - ovirt_host: 
+    - new_vm_uuid: "040361e4-e1b7-497e-9e22-23623270e4de"
+
+  pre_tasks:
+    - debug: msg="cores = {{ cores }}"
+    - debug: msg="memory = {{ memory }}"
+    - debug: msg="template_name = {{ template_name }}"
+    - debug: msg="hostname = {{ hostname }}"
+      
+  roles:
+    - ../../roles/ovirt-vm
+    - ../../roles/register-manageiq
+
+- hosts: new-vms
+
+  vars:
+    install_iis: 'f'
+  
+  tasks:
+    - name: Install IIS (Web-Server and Web-Common-Http)
+      win_feature:
+        name:
+          - Web-Server
+          - Web-Common-Http
+        state: present
+      when: install_iis == 't'
+    
+

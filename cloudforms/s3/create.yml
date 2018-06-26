@@ -1,0 +1,104 @@
+---
+- name: Create AWS S3 bucket
+  hosts: localhost
+  connection: local
+  gather_facts: no
+
+  vars:
+    - cf_host: 
+    - cf_username: 
+    - cf_password: 
+    - generic_definition: "1000000000001"
+      #- service_id: "1000000000002"
+    - policy: "{}"
+    - bucket_name: "ltsai-10"
+    - generic_objects_id: #
+
+  tasks:
+    - name: Get services # This needs to be provided by automate method to pass the actual service id
+      uri:
+        url: "https://{{ cf_host }}/api/services"
+        method: GET
+        return_content: yes
+        user: "{{ cf_username }}"
+        password: "{{ cf_password }}"
+        validate_certs: no
+        body_format: json
+        headers:
+          Content-Type: "application/json"
+      register: service
+
+    
+    - debug: msg="{{ service.json.resources|last|json_query('href') }}"
+
+    - debug: msg="{{ bucket_name }} {{ policy }}"
+    
+    - name: Creating S3 bucket
+      s3_bucket:
+        name: "{{ bucket_name }}"
+        policy: "{{ policy }}"
+        state: present
+      register: s3
+
+    - debug: msg="{{s3}}"
+
+    - name: Create CloudForms Generic object instance
+      uri:
+        url: "https://{{ cf_host }}/api/generic_objects"
+        method: POST
+        user: "{{ cf_username }}"
+        password: "{{ cf_password }}"
+        validate_certs: no
+        headers:
+          Content-Type:  application/json
+        body_format: json
+        body:
+          action: create
+          name: "{{ bucket_name }}" 
+          generic_object_definition:
+            href: "https://{{ cf_host }}/api/generic_object_definitions/{{ generic_definition }}"
+          property_attributes:
+            name: "{{ bucket_name }}"
+            policy: "{{ policy }}"
+          associations:
+            #provider:
+            #- href: https://localhost/api/providers/"{{ provider }}"
+            service:
+              - href: "{{ service.json.resources|last|json_query('href') }}" #"https://{{ cf_host }}/api/services/{{ service_id }}"
+            #- href: "{{ service.json.resources|last|json_query('href') }}"
+      register: genobject
+      
+
+    - debug: "msg={{ genobject.json.results[0].href }}"
+
+    # - name: add VM to service
+    #   uri:
+    #     url: "{{ service.json.resources|last|json_query('href') }}" #
+    #     method: POST
+    #     user: "{{ cf_username }}"
+    #     password: "{{ cf_password }}"
+    #     validate_certs: no
+    #     headers:
+    #       Content-Type:  application/json
+    #     body_format: json
+    #     body:
+    #       action: add_resource
+    #       resource:
+    #         resource:
+    #           href: "https://192.168.0.169/api/vms/1000000000026" #https://192.168.2.46/api/vms/46000000000013
+
+    - name: add generic object to service
+      uri:
+        url: "{{ service.json.resources|last|json_query('href') }}" #"https://{{ cf_host }}/api/services/{{ service_id }}" #"{{ service.json.resources|last|json_query('href') }}"
+        method: POST
+        user: "{{ cf_username }}"
+        password: "{{ cf_password }}"
+        validate_certs: no
+        headers:
+          Content-Type:  application/json
+        body_format: json
+        body:
+          action: add_resource
+          resource:
+            resource: 
+              href: "{{ genobject.json.results[0].href }}"

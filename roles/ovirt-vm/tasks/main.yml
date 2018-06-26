@@ -1,0 +1,95 @@
+---
+# tasks file for ovirt-vm
+#
+
+- name: Obtain SSO token with using username/password credentials
+  ovirt_auth:
+    url: "https://{{ ovirt_host }}/ovirt-engine/api"
+    username: "{{ ovirt_username }}"
+    password: "{{ ovirt_password }}"
+    insecure: yes
+  
+- name: Provision VM
+  ovirt_vms:
+    auth: "{{ ovirt_auth }}"
+    name: "{{ hostname }}"
+    template: "{{ template_name }}"
+    cluster: Default
+    memory: "{{ memory }}"
+    cpu_cores: "{{ cores }}"
+    cpu_sockets: 1
+    clone: yes
+    state: running
+    wait: yes
+    timeout: 300
+    nics:
+      - name: nic1
+        profile_name: ovirt_mgmt
+    cloud_init:
+      host_name: "{{ hostname }}"
+      nic_boot_protocol: dhcp
+      #nic_ip_address: "{{ ip_address }}"
+      #nic_netmask: 255.255.255.0
+      #nic_gateway: 192.168.0.1
+      #dns_servers: 192.168.0.212
+      #dns_search: lab.ltsai.com
+      nic_name: eth0
+      nic_on_boot: true
+      user_name: root
+      root_password: super_password 
+  register: vm
+
+#- debug: var=vm
+
+- set_fact:
+    new_vm_uuid: "{{ vm.id }}"
+
+- name: Waiting for VM to boot up
+  pause:
+    seconds: 30
+
+- Name: Gather fact about the new vm(s)
+  ovirt_vms_facts:
+    auth: "{{ ovirt_auth }}"
+    fetch_nested: true
+    nested_attributes: ips
+    pattern: id="{{ new_vm_uuid }}"
+
+- set_fact: 
+    ip_address: "{{ovirt_vms | first | json_query('reported_devices[*].ips[0].address') | first}}"
+    os_type: "{{ (ovirt_vms | first).os.type | lower}}"
+
+- debug: var=os_type
+- debug: var=ip_address
+
+- name: Not Windows VM, set port=22
+  set_fact:
+    port: 22
+  when: "'windows' not in os_type"
+
+- name: Windows VM, set port=5986
+  set_fact:
+    port: 5986
+  when: "'windows' in os_type"
+
+- debug: var=port
+
+- name: Wait for ansible_port to be up
+  local_action: wait_for host={{ ip_address }} port={{ port }} state=started delay=5
+  become: no
+
+- name: Add new windows vm to dynamic inventory
+  add_host:
+    name: "{{ ip_address }}"
+    groups: new-vms
+    ansible_connection: winrm
+    ansible_port: "{{ port }}"
+    ansible_winrm_server_cert_validation: ignore
+  when: "'windows' in os_type"
+
+- name: Add new linux vm to dynamic inventory
+  add_host:
+    name: "{{ ip_address }}"
+    groups: new-vms
+    ansible_port: "{{ port }}"    
+  when: "'windows' not in os_type"

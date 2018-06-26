@@ -1,0 +1,57 @@
+---
+- hosts: localhost
+  connection: local
+  gather_facts: no
+
+  vars:
+    - provider_id: 1000000000001
+    - manageiq_host: 
+    - manageiq_username: 
+    - manageiq_password: 
+    - ovirt_username: 
+    - ovirt_password: 
+    - ovirt_host: 
+    - new_vm_uuid: "040361e4-e1b7-497e-9e22-23623270e4de"
+
+  pre_tasks:
+    - debug: msg="cores = {{ cores }}"
+    - debug: msg="memory = {{ memory }}"
+    - debug: msg="template_name = {{ template_name }}"
+    - debug: msg="hostname = {{ hostname }}"
+      
+  roles:
+    - ../../roles/ovirt-vm
+    - ../../roles/register-manageiq
+
+- hosts: new-vms
+  become: yes
+
+  vars:
+    - sat6_fqdn: "sat6.lab.ltsai.com"
+    - activationkey: "rhel-7Server"  
+    - admin_user: admin
+    - admin_pass: system
+    - org: IT
+    - loc: Primary-DC
+    - hostgroup: RHEL7-dev
+    - install_apache: 'f'
+    - install_mysql: 'f'
+
+  # These are specific to my env because I do not have an IPAM,
+  # My lab dns != my router dns
+  pre_tasks:
+    - name: Configure DNS
+      command: "{{ item }}"
+      with_items:
+        - 'nmcli con mod "System eth0" ipv4.dns "192.168.0.212"'
+        - 'nmcli con mod "System eth0" ipv4.ignore-auto-dns yes'
+        - 'nmcli con mod "System eth0" ipv4.dns-search "lab.ltsai.com"'
+    
+    - name: Restart network
+      command: 'systemctl restart network'
+
+  roles:
+    - { role: ../../roles/register_to_satellite, when: ansible_os_family == "RedHat" }
+    - { role: ../../roles/ansible-role-apache, when: install_apache == 't' }
+    - { role: ../../roles/ansible-role-mysql, when: install_mysql == 't' }
+         

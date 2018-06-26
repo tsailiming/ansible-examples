@@ -1,0 +1,22 @@
+---
+- name: Update AWS S3 bucket
+  hosts: localhost
+  connection: local
+  gather_facts: no
+
+  vars:
+    - cf_host: 
+    - cf_username: 
+    - cf_password:
+    - generic_definition: "1000000000001"
+    - service_id: #"1000000000002"
+    - policy: #"{}"
+    - obj_name: #"ltsai-10"
+    - generic_objects_id: #
+
+  tasks:
+    - debug: msg="{{ bucket_name }}"
+
+    - debug: msg="{{ policy }}"
+
+    - debug: msg="{{ generic_object_id }}"
