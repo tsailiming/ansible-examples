@@ -1,0 +1,4 @@
+---
+docker_storage_setup_devs: ['/dev/sdb']
+docker_storage_setup_vg_name: docker_vg
+docker_storage_setup_lv_name: docker_lv

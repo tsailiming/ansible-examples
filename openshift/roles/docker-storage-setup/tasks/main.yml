@@ -1,0 +1,68 @@
+---
+- name: Stop docker daemon
+  service: 
+    name: docker
+    state: stopped
+
+- name: Umount /var/lib/docker
+  mount:
+    path: /var/lib/docker
+    state: unmounted
+
+- name: Wipe away XFS on /dev/mapper/{{ docker_storage_setup_vg_name }}-{{ docker_storage_setup_lv_name }}
+  command: wipefs -a -f -q /dev/mapper/{{ docker_storage_setup_vg_name }}-{{ docker_storage_setup_lv_name }}
+
+- name: Remove docker lv
+  lvol:  
+    vg: "{{ docker_storage_setup_vg_name }}"
+    lv: "{{ docker_storage_setup_lv_name }}"
+    state: absent
+    force: yes
+
+- name: Remove docker vg
+  lvg:
+    vg: "{{ docker_storage_setup_vg_name }}"
+    state: absent
+    force: yes
+
+- name: Check for existence of PV
+  command: pvs "{{ item }}1"
+  with_items: "{{ docker_storage_setup_devs }} "
+  register: pv_out
+  ignore_errors: yes
+  loop_control:
+    label: "{{ item }}1"
+
+- name: Remove PV
+  command: pvremove -f "{{ item.item }}1"
+  with_items: "{{ pv_out.results }} "
+  loop_control:
+    label: "{{ item.item }}1"
+  when: item.rc == 0
+  
+- name: Clear all partitions
+  command: wipefs -a -f -q {{ item }}
+  with_items: "{{ docker_storage_setup_devs }} "
+
+- name: Remove default docker-storage config
+  file:
+    path: /etc/sysconfig/docker-storage
+    state: absent
+  
+- name: Clear /var/lib/docker directory
+  command: rm -rf /var/lib/docker/*
+  args:
+    warn: false
+
+- name: Copy docker-storage-setup config
+  template:
+    src: docker-storage-setup.conf.j2
+    dest: /etc/sysconfig/docker-storage-setup
+    
+- name: Run container-storage-setup 
+  command: container-storage-setup 
+
+- name: Start docker daemon
+  service: 
+    name: docker
+    state: started

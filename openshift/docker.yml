@@ -1,0 +1,10 @@
+# For RHEL and not atomic
+- name: Setup docker storage for OpenShift
+  hosts: OSEv3
+  become: yes
+  
+  vars:
+    docker_storage_setup_devs: ['/dev/sdb']
+
+  roles:
+    - docker-storage-setup
