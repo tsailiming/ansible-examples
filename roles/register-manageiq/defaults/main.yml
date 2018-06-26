@@ -1,0 +1,8 @@
+---
+# defaults file for register-manageiq
+#
+manageiq_host:
+manageiq_username:
+manageiq_hostname:
+max_retries: 9
+retry_interval: 20
