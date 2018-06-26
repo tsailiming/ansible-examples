@@ -1,8 +1,7 @@
 - name: Setup VMs for OpenShift
   hosts: all
   become: yes
-  remote_user: cloud-user
-
+  
   vars:
     sat6_fqdn: sat6.lab.ltsai.com
     activationkey: ocp_3_9_rpm #,ocp_3_9_docker
@@ -19,8 +18,7 @@
 - name: Setup bastion host
   hosts: bastion
   become: yes
-  remote_user: cloud-user
-
+  
   tasks:
     - name: Install atomic-openshift-utils
       yum:
