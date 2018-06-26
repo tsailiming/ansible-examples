@@ -7,9 +7,9 @@
   vars:
     - env: dev
     
-    - ovirt_host: 
-    - ovirt_username:
-    - ovirt_password: 
+    # - ovirt_host: 
+    # - ovirt_username:
+    # - ovirt_password: 
 
     - template_name: rhel_7_5_w_cloud_user
 
@@ -23,6 +23,7 @@
         username: "{{ ovirt_username }}"
         password: "{{ ovirt_password }}"
         insecure: yes
+      when: ovirt_host is defined
 
     # - debug: var=vms
     # - debug: var=vm_cloud_init_info
