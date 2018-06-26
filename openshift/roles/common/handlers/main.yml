@@ -1,0 +1,6 @@
+---
+# handlers file for setup-nework
+- name: Restart NetworkManager
+  service:
+    name: NetworkManager
+    state: restarted

@@ -1,0 +1,65 @@
+---
+- name: Disable cloud-init
+  file: 
+    name: /etc/cloud/cloud-init.disabled
+    state: touch
+
+- name: Ensure NM is enabled in the interfaces
+  lineinfile:
+    path: /etc/sysconfig/network-scripts/ifcfg-eth0
+    line: "NM_CONTROLLED=yes"
+  notify: Restart NetworkManager
+
+- name: Ensure NetworkManager is running
+  service:
+    name: NetworkManager
+    state: started
+    enabled: yes
+
+- name: "Install common packages"
+  yum:
+    name: "{{ item }}"
+    state: present
+  with_items: "{{ packages }}"
+
+- name: Ensure chronyd is running
+  service:
+    name: chronyd
+    state: started
+    enabled: yes
+
+- name: Ensure firewalld is running
+  service:
+    name: firewalld
+    state: started
+    enabled: yes
+
+- name: Check if ssh key exists
+  stat:
+    path: /home/{{ ansible_ssh_user }}/.ssh/id_rsa
+  register: ssh_key_result
+  delegate_to: "{{ hostvars[groups['bastion'][0]]['ansible_fqdn'] }}"
+  become: no
+  run_once: true
+
+- name: Create keys
+  command: ssh-keygen -t rsa -f /home/{{ ansible_ssh_user }}/.ssh/id_rsa -N ''
+  delegate_to: "{{ hostvars[groups['bastion'][0]]['ansible_fqdn'] }}"
+  become: no
+  run_once: true
+  when: ssh_key_result.stat.exists == False
+
+- name: Read public key
+  command: "cat /home/{{ ansible_ssh_user }}/.ssh/id_rsa.pub"
+  register: ssh_public_key
+  delegate_facts: yes
+  delegate_to: "{{ hostvars[groups['bastion'][0]]['ansible_fqdn'] }}"
+  become: no
+  run_once: true
+
+- name: Set authorized key
+  authorized_key:
+    user:  "{{ ansible_ssh_user }}"
+    state: present
+    key:  "{{ hostvars[groups['bastion'][0]]['ssh_public_key'].stdout }}"
+  become: no

@@ -1,0 +1,33 @@
+- name: Setup VMs for OpenShift
+  hosts: all
+  become: yes
+  remote_user: cloud-user
+
+  vars:
+    sat6_fqdn: sat6.lab.ltsai.com
+    activationkey: ocp_3_9_rpm #,ocp_3_9_docker
+    admin_user: admin
+    admin_pass: system
+    org: IT
+    loc: Primary-DC
+    apply_updates: yes
+
+  roles:
+    - ../../roles/register_to_satellite
+    - common
+
+- name: Setup bastion host
+  hosts: bastion
+  become: yes
+  remote_user: cloud-user
+
+  tasks:
+    - name: Install atomic-openshift-utils
+      yum:
+        name: atomic-openshift-utils
+        state: latest
+
+    - name: Copy Ansible Inventory hosts file
+      copy:
+        src: "hosts/{{ env }}.hosts"
+        dest: /etc/ansible/hosts

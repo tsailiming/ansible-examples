@@ -1,0 +1,42 @@
+---
+vm_nics_info:
+  - name: nic1
+    profile_name: ovirtmgmt
+
+vm_cloud_init_info:
+  nic_boot_protocol: static
+  nic_netmask: 255.255.255.0
+  nic_gateway: 192.168.0.1
+  dns_servers: 192.168.0.212
+  dns_search: lab.ltsai.com
+  nic_name: eth0
+  nic_on_boot: true
+
+cluster_name: Default
+storage_domain: b05-data
+
+vms:
+  master:
+    cores: 2
+    memory: 4GiB
+    os_disk_size: 40GiB
+    docker_disk_size: 40GiB
+
+  infra:
+    cores: 2
+    memory: 4GiB
+    os_disk_size: 40GiB 
+    docker_disk_size: 40GiB
+    
+  compute:
+    cores: 2
+    memory: 4GiB   
+    os_disk_size: 40GiB 
+    docker_disk_size: 40GiB
+    gluster_disk_size: 40GiB 
+
+  bastion:
+    cores: 2
+    memory: 4GiB   
+    os_disk_size: 40GiB 
+    

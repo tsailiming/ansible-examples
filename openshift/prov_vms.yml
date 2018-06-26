@@ -1,0 +1,224 @@
+---
+- name: Provision VMs for OpenShift
+  hosts: localhost
+  connection: local
+  gather_facts: no
+
+  vars:
+    - env: dev
+    
+    - ovirt_host : rhvm.lab.ltsai.com
+    - ovirt_username: admin@internal
+    - ovirt_password: 
+
+    - template_name: rhel_7_5_w_cloud_user
+    # - cluster_name: Default
+    # - storage_domain: b05-data
+
+    # - vm_nics_info:
+    #     - name: nic1
+    #       profile_name: ovirtmgmt
+
+    # - vm_cloud_init_info:
+    #     nic_boot_protocol: static
+    #     nic_netmask: 255.255.255.0
+    #     nic_gateway: 192.168.0.1
+    #     dns_servers: 192.168.0.212
+    #     dns_search: lab.ltsai.com
+    #     nic_name: eth0
+    #     nic_on_boot: true
+        
+    # - vms:
+    #     - hostname: ocp1-master1
+    #       fqdn: ocp1-master1.lab.ltsai.com
+    #       cores: 2
+    #       memory: 4GiB
+    #       os_disk_size: 40GiB
+    #       docker_disk_size: 40GiB
+    #       ip_address: 192.168.0.232
+    #       type: master
+
+    #     - hostname: ocp1-infra1
+    #       fqdn: ocp1-infra1.lab.ltsai.com
+    #       cores: 2
+    #       memory: 4GiB
+    #       os_disk_size: 40GiB 
+    #       docker_disk_size: 40GiB
+    #       ip_address: 192.168.0.235
+    #       type: infra
+
+    #     - hostname: ocp1-node1
+    #       fqdn: ocp1-node1.lab.ltsai.com
+    #       cores: 2
+    #       memory: 4GiB   
+    #       os_disk_size: 40GiB 
+    #       docker_disk_size: 40GiB
+    #       gluster_disk_size: 40GiB
+    #       ip_address: 192.168.0.238
+    #       type: node
+
+    #     - hostname: ocp1-node2
+    #       fqdn: ocp1-node2.lab.ltsai.com
+    #       cores: 2
+    #       memory: 4GiB   
+    #       os_disk_size: 40GiB 
+    #       docker_disk_size: 40GiB
+    #       gluster_disk_size: 40GiB
+    #       ip_address: 192.168.0.239
+    #       type: node
+
+    #     - hostname: ocp1-node3
+    #       fqdn: ocp1-node3.lab.ltsai.com
+    #       cores: 2
+    #       memory: 4GiB   
+    #       os_disk_size: 40GiB 
+    #       docker_disk_size: 40GiB
+    #       gluster_disk_size: 40GiB
+    #       ip_address: 192.168.0.240
+    #       type: node
+
+    #     - hostname: ocp1-ansible
+    #       fqdn: ocp1-ansible.lab.ltsai.com
+    #       cores: 2
+    #       memory: 4GiB   
+    #       os_disk_size: 40GiB 
+    #       ip_address: 192.168.0.231
+    #       type: ansible
+
+  vars_files: 
+    - "vars/{{ env }}.yml"
+  
+  tasks:
+    - name: Obtain SSO token with using username/password credentials
+      ovirt_auth:
+        url: "https://{{ ovirt_host }}/ovirt-engine/api"
+        username: "{{ ovirt_username }}"
+        password: "{{ ovirt_password }}"
+        insecure: yes
+
+    # - debug: var=vms
+    # - debug: var=vm_cloud_init_info
+
+    # - debug: msg="{{hostvars[item]['openshift_node_labels']['region']}}"
+    #   with_items: "{{ groups['nodes'] }}"
+    
+    - name: Construct new variable to include standard network information 
+      set_fact:
+        new_vms: |
+          {% set cloud_init = vm_cloud_init_info | combine({'nic_ip_address': hostvars[item].ip_address, 'host_name': hostvars[item].inventory_hostname}) %}
+          {% set type = hostvars[item]['openshift_node_labels']['region']  %}
+          {% set item = vms[type] | combine({'ip_address': hostvars[item].ip_address, 'hostname': hostvars[item].inventory_hostname_short, 'cloud_init': cloud_init, 'nics': vm_nics_info}) %}
+          {{ new_vms | default([]) + [ item ] }}      
+      with_items: "{{ groups['all'] }}"
+
+    # - name: Construct new variable to include standard network information 
+    #   set_fact:
+    #     new_vms: |
+    #       {% set cloud_init = vm_cloud_init_info | combine({'nic_ip_address': item.ip_address, 'host_name': item.fqdn}) %}
+    #       {% set item = item | combine({'cloud_init': cloud_init, 'nics': vm_nics_info}) %}
+    #       {{ new_vms | default([]) + [ item ] }}
+    #   with_items: "{{ vms }}" 
+
+    #- debug: var=new_vms
+
+    - name: Provision OpenShift VM
+      ovirt_vms:
+        auth: "{{ ovirt_auth }}"
+        name: "{{ item.hostname }}"
+        template: "{{ template_name }}"
+        cluster: "{{ cluster_name }}"
+        memory: "{{ item.memory }}"
+        cpu_cores: "{{ item.cores }}"
+        cpu_sockets: 1
+        clone: yes
+        state: present
+        wait: no
+        timeout: 300
+        nics: "{{ item.nics }}"
+        cloud_init: "{{ item.cloud_init }}"
+        fetch_nested: yes
+        nested_attributes: 
+          - disk_attachments
+      register: vms
+      with_items: "{{ new_vms }}"
+      loop_control:
+        label: "{{ item.hostname }}"
+
+#     # # - debug: msg="disk id={{ item.0.vm.disk_attachments[0].id[0] }} size={{item.1.os_disk_size}}"
+#     # #   with_together: 
+#     # #     - "{{ vms.results }}"
+#     # #     - "{{ new_vms }}"
+
+    - name: Resize OS disk
+      ovirt_disk:
+        auth: "{{ ovirt_auth }}"
+        id: "{{ item.0.vm.disk_attachments[0].id[0] }}"
+        vm_id: "{{ item.0.vm.id }}"
+        size: "{{item.1.os_disk_size}}"
+        wait: yes
+      with_together: 
+        - "{{ vms.results }}"
+        - "{{ new_vms }}"
+      loop_control:
+        label: "{{item.0.vm.name }}"
+
+    - name: Add Docker disk
+      ovirt_disk:
+        auth: "{{ ovirt_auth }}"
+        vm_id: "{{ item.0.vm.id }}"
+        name: "{{item.0.vm.name | lower}}_docker_disk"
+        size: "{{item.1.docker_disk_size}}"
+        format: cow
+        interface: virtio_scsi
+        storage_domain: "{{ storage_domain }}"
+        wait: yes
+      with_together: 
+        - "{{ vms.results }}"
+        - "{{ new_vms }}"
+      when: item.1.docker_disk_size is defined
+      loop_control:
+        label: "{{item.0.vm.name}}"
+
+    - name: Add Gluster disk
+      ovirt_disk:
+        auth: "{{ ovirt_auth }}"
+        vm_id: "{{ item.0.vm.id }}"
+        name: "{{item.0.vm.name | lower}}_gluster_disk"
+        size: "{{item.1.gluster_disk_size}}"
+        format: cow
+        interface: virtio_scsi
+        storage_domain: "{{ storage_domain }}"
+        wait: yes
+      with_together: 
+        - "{{ vms.results }}"
+        - "{{ new_vms }}"
+      when: item.1.gluster_disk_size is defined
+      loop_control:
+        label: "{{item.0.vm.name}}"
+
+    - name: Power on VM
+      ovirt_vms:
+        auth: "{{ ovirt_auth }}"
+        id: "{{ item.0.vm.id }}"
+        state: running
+        wait: no
+        timeout: 300
+        nics: "{{ item.1.nics }}"
+        cloud_init: "{{ item.1.cloud_init }}"
+      with_together: 
+        - "{{ vms.results }}"
+        - "{{ new_vms }}"
+      loop_control:
+        label: "{{ item.1.hostname }}"
+
+    - name: Wait for all the vms to initialize
+      pause:
+        seconds: 15
+
+    - wait_for:
+        port: 22
+        host: "{{ item.ip_address }}"
+      with_items: "{{ new_vms }}"
+      loop_control:
+        label: "{{ item.hostname }}"
+

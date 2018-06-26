@@ -1,0 +1,12 @@
+---
+packages:
+  - firewalld
+  - vim-enhanced
+  - chrony
+  - NetworkManager
+  - sos
+  - kexec-tools
+  - psacct
+  - wget 
+  - net-tools 
+  - kexec-tools
