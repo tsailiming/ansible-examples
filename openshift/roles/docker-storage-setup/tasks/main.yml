@@ -9,8 +9,14 @@
     path: /var/lib/docker
     state: unmounted
 
+- name: Check if /dev/mapper/{{ docker_storage_setup_vg_name }}-{{ docker_storage_setup_lv_name }} exists
+  stat:
+      path: /dev/mapper/{{ docker_storage_setup_vg_name }}-{{ docker_storage_setup_lv_name }}
+  register: stat_result
+
 - name: Wipe away XFS on /dev/mapper/{{ docker_storage_setup_vg_name }}-{{ docker_storage_setup_lv_name }}
   command: wipefs -a -f -q /dev/mapper/{{ docker_storage_setup_vg_name }}-{{ docker_storage_setup_lv_name }}
+  when: stat_result.stat.exists == True 
 
 - name: Remove docker lv
   lvol:  
