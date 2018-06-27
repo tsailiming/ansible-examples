@@ -18,7 +18,7 @@ storage_domain: b05-data
 vms:
   master:
     cores: 2
-    memory: 4GiB
+    memory: 6GiB
     os_disk_size: 40GiB
     docker_disk_size: 40GiB
 
