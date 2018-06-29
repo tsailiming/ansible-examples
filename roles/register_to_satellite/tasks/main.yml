@@ -31,7 +31,7 @@
   when: sub_mgr.rc == 1
 
 - name: Check for updates
-  command: yum check-update
+  command: yum check-update -q
   register: update_out
   ignore_errors: yes
   
