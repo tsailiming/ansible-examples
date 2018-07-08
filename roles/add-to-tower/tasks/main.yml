@@ -5,9 +5,9 @@
     tower_username: "{{ lookup('env','TOWER_USERNAME') }}"
     tower_password: "{{ lookup('env','TOWER_PASSWORD') }}"
 
-- debug: var=tower_host
-- debug: var=tower_username
-- debug: var=tower_password
+# - debug: var=tower_host
+# - debug: var=tower_username
+# - debug: var=tower_password
 
 - name: Add tower inventory
   tower_inventory:
@@ -21,13 +21,14 @@
 
 - name: Add tower group
   tower_group:
-    name: "{{ ec2_server_group_name }}"
+    name: "{{ tower_group_name }}"
     inventory: "{{ tower_inventory_name }}"
     state: present
     # tower_host: "{{ tower_host }}"
     # tower_username: "{{ tower_username }}"
     # tower_password: "{{ tower_password }}"
     tower_verify_ssl: no
+  when: tower_group_name is defined
 
 - name: Add tower host
   tower_host:
