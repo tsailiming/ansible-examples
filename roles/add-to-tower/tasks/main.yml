@@ -1,0 +1,68 @@
+---
+- name: Add tower inventory
+  tower_inventory:
+    name: "{{ tower_inventory_name }}"
+    organization: Default
+    state: present
+    # tower_host: "{{ tower_host }}"
+    # tower_username: "{{ tower_username }}"
+    # tower_password: "{{ tower_password }}"
+    tower_verify_ssl: no
+
+- name: Add tower group
+  tower_group:
+    name: "{{ ec2_server_group_name }}"
+    inventory: "{{ tower_inventory_name }}"
+    state: present
+    # tower_host: "{{ tower_host }}"
+    # tower_username: "{{ tower_username }}"
+    # tower_password: "{{ tower_password }}"
+    tower_verify_ssl: no
+
+- name: Add tower host
+  tower_host:
+    name: "{{ host_name }}"
+    inventory: "{{ tower_inventory_name }}"
+    state: present
+    # tower_host: "{{ tower_host }}"
+    # tower_username: "{{ tower_username }}"
+    # tower_password: "{{ tower_password }}"
+    tower_verify_ssl: no
+    variables: "ansible_ssh_host: {{ ip_address }}"
+  
+# Tower will set these environment variables
+- set_fact: 
+    tower_host: "{{ lookup('env','TOWER_HOST') }}"
+    tower_username: "{{ lookup('env','TOWER_USERNAME') }}"
+    tower_password: "{{ lookup('env','TOWER_PASSWORD') }}"
+
+# https://github.com/ansible/ansible/issues/29149
+- name: Find group
+  uri:
+    url: "https://{{tower_host}}/api/v2/groups/?name={{ group_name }}&&inventory__name={{ tower_inventory_name }}"
+    user: "{{tower_username}}"
+    password: "{{tower_password}}"
+    body_format: json
+    validate_certs : no
+  when: group_name is defined
+  register: group_out
+  
+- debug: var=group_out
+  when: group_name is defined
+  
+- debug: msg="https://{{tower_host}}{{group_out.json.results[0].related.hosts}}"
+  when: group_name is defined
+  
+- name: Associate host with group in inventory
+  uri:
+    url: "https://{{tower_host}}{{group_out.json.results[0].related.hosts}}"
+    method: POST
+    body:
+      name: "{{ host_name }}"
+    status_code: 201, 204
+    user: "{{tower_username}}"
+    password: "{{tower_password}}"
+    body_format: json
+    validate_certs : no
+  when: group_name is defined
+  
