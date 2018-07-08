@@ -32,6 +32,8 @@
 
 - name: Check for updates
   command: yum check-update -q
+  args:
+    warn: false
   register: update_out
   ignore_errors: yes
   
