@@ -28,5 +28,3 @@
   roles:
     - ../roles/register_to_satellite
     - ../roles/foreman_scape_client
-    - { role: ../roles/oscap_scan, policy_id: "{{ openscap_policies_rhel7[0].policy_id }}" }
-   
