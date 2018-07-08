@@ -64,9 +64,8 @@
 
     - add_host:
         name: "{{ ip_address }}"
-        groups: web
-
-- hosts: web
+        
+- hosts: all
   gather_facts: no
   become: yes
 
