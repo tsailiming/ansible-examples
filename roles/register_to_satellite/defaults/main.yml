@@ -8,3 +8,4 @@ admin_pass:
 org: 
 loc: 
 hostgroup: 
+apply_updates: no
