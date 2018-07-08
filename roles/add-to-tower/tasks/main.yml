@@ -39,19 +39,19 @@
 # https://github.com/ansible/ansible/issues/29149
 - name: Find group
   uri:
-    url: "https://{{tower_host}}/api/v2/groups/?name={{ group_name }}&&inventory__name={{ tower_inventory_name }}"
+    url: "https://{{tower_host}}/api/v2/groups/?name={{ tower_group_name }}&&inventory__name={{ tower_inventory_name }}"
     user: "{{tower_username}}"
     password: "{{tower_password}}"
     body_format: json
     validate_certs : no
-  when: group_name is defined
+  when: tower_group_name is defined
   register: group_out
   
 - debug: var=group_out
-  when: group_name is defined
+  when: tower_group_name is defined
   
 - debug: msg="https://{{tower_host}}{{group_out.json.results[0].related.hosts}}"
-  when: group_name is defined
+  when: tower_group_name is defined
   
 - name: Associate host with group in inventory
   uri:
@@ -64,5 +64,5 @@
     password: "{{tower_password}}"
     body_format: json
     validate_certs : no
-  when: group_name is defined
+  when: tower_group_name is defined
   
