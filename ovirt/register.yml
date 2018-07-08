@@ -12,12 +12,9 @@
     loc: Primary-DC
     hostgroup: RHEL7-dev-nginx
     apply_updates: yes
-    
-    openscap_policies_rhel7:
-      - policy_id: 1
-        profile_id: xccdf_org.ssgproject.content_profile_C2S
-        content_path: /usr/share/xml/scap/ssg/content/ssg-rhel7-ds.xml
-        download_path: /compliance/policies/1/content
+  
+  vars_files:
+    - vars/oscap.yml
 
   roles:
     - ../roles/register_to_satellite

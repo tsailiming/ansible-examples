@@ -1,0 +1,10 @@
+- hosts: all
+  become: yes
+  gather_facts: yes
+
+  vars_files:
+    - vars/oscap.yml
+
+  roles:
+    - { role: ../roles/oscap_scan, policy_id: "{{ openscap_policies_rhel7[0].policy_id }}" }
+   
