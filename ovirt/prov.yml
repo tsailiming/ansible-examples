@@ -1,0 +1,72 @@
+---
+- hosts: localhost
+  connection: local
+  gather_facts: false
+
+  vars:
+    ip_address: "192.168.0.179"
+    host_name: "test-scap.lab.ltsai.com"
+    ovirt_host: rhvm.lab.ltsai.com
+    ovirt_username: admin@internal
+    ovirt_password: system
+   
+  tasks:
+    - name: Obtain oVirt SSO token with using username/password credentials
+      ovirt_auth:
+        url: "https://{{ ovirt_host }}/ovirt-engine/api"
+        username: "{{ ovirt_username }}"
+        password: "{{ ovirt_password }}"
+        insecure: yes
+      when: ovirt_host is defined
+
+    - name: Obtain oVirt SSO token (Tower)
+      ovirt_auth:
+        state: present
+        insecure: yes
+      when: ovirt_host is not defined
+
+    - name: Provision VM
+      ovirt_vms:
+        auth: "{{ ovirt_auth }}"
+        name: "{{ host_name }}"
+        template: rhel_7_5_w_cloud_user
+        cluster: Default
+        memory: 2GiB
+        cpu_cores: 2
+        cpu_sockets: 1
+        clone: yes
+        state: running
+        cloud_init:
+          host_name: "{{ host_name }}"
+          nic_boot_protocol: static
+          nic_ip_address: "{{ ip_address }}"
+          nic_netmask: 255.255.255.0
+          nic_gateway: 192.168.0.1
+          dns_servers: 192.168.0.212
+          dns_search: lab.ltsai.com
+          nic_name: eth0
+          nic_on_boot: true
+          user_name: root
+          root_password: super_password 
+
+    - name: Wait for all the vms to initialize
+      pause:
+        seconds: 15
+
+    - name: Wait for SSH to be up
+      local_action: wait_for host={{ ip_address }} port=22 state=started delay=5
+      become: no
+
+    - add_host:
+        name: "{{ ip_address }}"
+        groups: web
+
+- hosts: web
+  gather_facts: no
+  become: yes
+
+  tasks:
+    - name: Disable cloud-init
+      file: 
+        name: /etc/cloud/cloud-init.disabled
+        state: touch

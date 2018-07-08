@@ -1,0 +1,6 @@
+- hosts: all
+  become: yes
+  gather_facts: yes
+  
+  roles:
+    - ../roles/RHEL7-CIS

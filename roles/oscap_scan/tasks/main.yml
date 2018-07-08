@@ -1,0 +1,4 @@
+---
+# tasks file for oscap_scan
+- name: Running the OpenSCAP client policies
+  shell: "/usr/bin/foreman_scap_client {{ policy_id }}"
