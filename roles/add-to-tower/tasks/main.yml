@@ -1,4 +1,14 @@
 ---
+# Tower will set these environment variables
+- set_fact: 
+    tower_host: "{{ lookup('env','TOWER_HOST') }}"
+    tower_username: "{{ lookup('env','TOWER_USERNAME') }}"
+    tower_password: "{{ lookup('env','TOWER_PASSWORD') }}"
+
+- debug: var=tower_host
+- debug: var=tower_username
+- debug: var=tower_password
+
 - name: Add tower inventory
   tower_inventory:
     name: "{{ tower_inventory_name }}"
@@ -30,11 +40,7 @@
     tower_verify_ssl: no
     variables: "ansible_ssh_host: {{ ip_address }}"
   
-# Tower will set these environment variables
-- set_fact: 
-    tower_host: "{{ lookup('env','TOWER_HOST') }}"
-    tower_username: "{{ lookup('env','TOWER_USERNAME') }}"
-    tower_password: "{{ lookup('env','TOWER_PASSWORD') }}"
+
 
 # https://github.com/ansible/ansible/issues/29149
 - name: Find group
