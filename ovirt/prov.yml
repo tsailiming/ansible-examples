@@ -6,9 +6,14 @@
   vars:
     ip_address: "192.168.0.179"
     host_name: "test-scap.lab.ltsai.com"
+
+    memory: 2
+    cpu_cores: 2
+    
     ovirt_host: rhvm.lab.ltsai.com
     ovirt_username: admin@internal
     ovirt_password: system
+
    
   tasks:
     - name: Obtain oVirt SSO token with using username/password credentials
@@ -31,8 +36,8 @@
         name: "{{ host_name }}"
         template: rhel_7_5_w_cloud_user
         cluster: Default
-        memory: 2GiB
-        cpu_cores: 2
+        memory: "{{ memory }}GiB"
+        cpu_cores: "{{ cpu_cores }}"
         cpu_sockets: 1
         clone: yes
         state: running
