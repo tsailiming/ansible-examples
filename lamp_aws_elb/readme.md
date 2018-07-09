@@ -1,4 +1,4 @@
-#Introduction
+# Introduction
 
 This example provisions a 2-tier archiecture on AWS fronted by an ELB.
 
@@ -23,5 +23,5 @@ All the web instances are added to the ELB
 ![screenshot](pics/survey.png)
 
 # Other Playbooks
-* `patch-example.yml`: This peforms a rolling update by removing an instance at a time from the ELB
+* `patch-example.yml`: This peforms a rolling update by removing an instance one at a time from the ELB
 
