@@ -1,5 +1,5 @@
 # Introduction
-This example is using Ansible Tower Workflow to provision VM on Red Hat Virtualization.
+This example is using Ansible Tower Workflow to provision a virtual machine on Red Hat Virtualization.
 
 # Workflow
 
