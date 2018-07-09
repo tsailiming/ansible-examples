@@ -3,10 +3,9 @@ This is an example of using Ansible Tower Workflow to provision VM on Red Hat Vi
 
 # Workflow
 
-![workflow](/ovirt/pics/Screen Shot 2018-07-09 at 4.21.03 PM.png?raw=true)
+![workflow](pics/Screen Shot 2018-07-09 at 4.21.03 PM.png?raw=true)
 
-
-![Survey form](/ovirt/pics/Screen Shot 2018-07-09 at 4.46.50 PM.png?raw=true)
+![Survey form](pics/Screen Shot 2018-07-09 at 4.46.50 PM.png?raw=true)
 
 # Playbooks
 The workflow runs the following Playbooks:
