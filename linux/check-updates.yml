@@ -1,0 +1,33 @@
+---
+- name: Return a list of rpms that needs to be updated
+  hosts: all
+  gather_facts: false
+
+  vars:
+    updated_rpms: []
+
+  tasks:
+    - name: Check updates
+      command: yum check-update
+      register: out
+      failed_when: out.rc != 100 and out.rc != 0
+      args:
+        warn: false
+      
+      # Sample output
+      # Loaded plugins: product-id, search-disabled-repos, subscription-manager
+      # 
+      # ansible.noarch                                                                 2.6.14-1.el7ae                                                      rhel-7-server-ansible-2.6-rpms
+      # java-1.8.0-openjdk.x86_64                                                      1:1.8.0.201.b09-0.el7_6                                             rhel-7-server-rpms            
+      # java-1.8.0-openjdk-headless.x86_64                                             1:1.8.0.201.b09-0.el7_6                                             rhel-7-server-rpms            
+      # libgudev1.x86_64                                                               219-62.el7_6.5                                                      rhel-7-server-rpms   
+    - name: Trim out the list of rpms
+      set_fact: 
+        rpms_list: "{{ out.stdout.split('\n')[2:] }}"
+
+    - name: Build a list of updated rpms
+      set_fact:
+        updated_rpms: "{{updated_rpms}} + [{{ item.split()[:2] }}]"
+      with_items: "{{ rpms_list }}"
+
+    - debug: var=updated_rpms 
