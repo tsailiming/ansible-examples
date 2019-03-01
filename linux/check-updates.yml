@@ -30,4 +30,21 @@
         updated_rpms: "{{updated_rpms}} + [{{ item.split()[:2] }}]"
       with_items: "{{ rpms_list }}"
 
-    - debug: var=updated_rpms 
+    - name: Get list of advisories
+      shell: "yum updateinfo list | head -n-1 | tail -n+2 | awk '{ print $1 }' | sort | uniq"
+      register: updateinfo
+      args:
+        warn: false
+        
+- name: Genearete report
+  hosts: all
+  gather_facts: false
+
+  tasks:
+    - name: Generate html report
+      template:
+        src: report.j2
+        dest: /tmp/report.html
+      delegate_to: localhost
+      run_once: true
+    
