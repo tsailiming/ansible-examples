@@ -5,6 +5,7 @@
   
   vars:
     pvwa_url: "https://pvwa.192.168.3.102.xip.io"
+    cyberark_app_id: "ansible"
 
   tasks:
     - name: Retrieve REST API Service Account for Onboarding to CyberArk
@@ -13,7 +14,7 @@
         validate_certs: no
         client_cert: ""
         client_key: "" 
-        app_id: "Ansible"
+        app_id: "{{cyberark_app_id}}"
         query: "Safe=D-CYBR-RESTAPI-ACCTS;Folder=Root;Object=ANSIBLE-RESTAPI-USER"
       register: cyberark_user_response
       delegate_to: localhost
@@ -61,6 +62,20 @@
             automaticManagementEnabled: yes
         body_format: json
         validate_certs: no
+      register: cyberark_account_response
+
+    - name: Set CyberArk Account ID to Fact Named cyberark_account_id
+      set_fact:
+        cyberark_account_id: "{{ cyberark_account_response.json.id }}"
+      
+    - name: Change credential immediately
+      uri:
+        url: "{{pvwa_url}}/PasswordVault/api/Accounts/{{cyberark_account_id}}/Change"
+        headers:
+          Content-Type: application/json
+          Authorization: "{{ cyberark_authn_token }}"
+        method: POST 
+        status_code: 200
 
     - name: Logoff from CyberArk Web Services
       cyberark_authentication:
