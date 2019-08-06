@@ -6,6 +6,13 @@
   vars:
     pvwa_url: "https://pvwa.192.168.3.102.xip.io"
     cyberark_app_id: "ansible"
+    cyberark_account_name: 
+    cyberark_account_address:
+    cyberark_account_username:
+    cyberark_account_platformid:
+    cyberark_account_safename:
+    cyberark_account_secrettype: "password"
+    cyberark_account_secret:
 
   tasks:
     - name: Retrieve REST API Service Account for Onboarding to CyberArk
@@ -51,13 +58,13 @@
         method: POST 
         status_code: 201
         body:
-          name: "MYSQL-DEMO-USER"
-          address: "rhel01.192.168.3.104.xip.io"
-          userName: "{{ mysql_username }}"
-          platformId: "MySQL"
-          safeName: "D-MYSQL-LOCAL-USERS"
-          secretType: "password"
-          secret: "{{ mysql_password }}"
+          name: "{{ cyberark_account_name"
+          address: "{{ cyberark_account_address }}"
+          userName: "{{ cyberark_account_username }}"
+          platformId: "{{ cyberark_account_platformid }}"
+          safeName: "{{ cyberark_account_safename }}"
+          secretType: "{{ cyberark_account_secrettype }}"
+          secret: "{{ cyberark_account_secret }}"
           secretManagement:
             automaticManagementEnabled: yes
         body_format: json
