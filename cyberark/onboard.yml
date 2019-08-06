@@ -49,7 +49,7 @@
         cyberark_authn_token: "{{ cyberark_session.token }}"
       no_log: yes
 
-    - name: Onboard MySQL Local User to CyberArk EPV
+    - name: Onboard User to CyberArk EPV
       uri:
         url: "{{pvwa_url}}/PasswordVault/api/Accounts/"
         headers:
