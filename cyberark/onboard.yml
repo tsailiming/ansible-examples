@@ -58,7 +58,7 @@
         method: POST 
         status_code: 201
         body:
-          name: "{{ cyberark_account_name"
+          name: "{{ cyberark_account_name }}"
           address: "{{ cyberark_account_address }}"
           userName: "{{ cyberark_account_username }}"
           platformId: "{{ cyberark_account_platformid }}"
