@@ -1,0 +1,68 @@
+---
+- hosts: localhost
+  connection: local
+  setup: false
+  
+  vars:
+    pvwa_url: "https://pvwa.192.168.3.102.xip.io"
+
+  tasks:
+    - name: Retrieve REST API Service Account for Onboarding to CyberArk
+      cyberark_authentication: "{{ pvwa_url }} "
+        api_base_url: 
+        validate_certs: no
+        client_cert: ""
+        client_key: "" 
+        app_id: "Ansible"
+        query: "Safe=D-CYBR-RESTAPI-ACCTS;Folder=Root;Object=ANSIBLE-RESTAPI-USER"
+      register: cyberark_user_response
+      delegate_to: localhost
+      no_log: yes
+
+    - name: Set REST API Username to Fact Named cyberark_secret_username
+      set_fact:
+        cyberark_secret_username: "{{ cyberark_user_response.result.UserName }}"
+      no_log: yes
+    
+    - name: Set REST API User Password to Fact Named cyberark_secret_userpass
+      set_fact:
+        cyberark_secret_userpass: "{{ cyberark_user_response.result.Content }}"
+      no_log: yes
+
+    - name: Authenticate to CyberArk Web Services
+      cyberark_authentication:
+        api_base_url: "{{ pvwa_url }} "
+        validate_certs: no
+        username: "{{ cyberark_rest_user }}"
+        password: "{{ cyberark_rest_pass }}"
+
+    - name: Set CyberArk Authn Token to Fact Named cyberark_authn_token
+      set_fact:
+        cyberark_authn_token: "{{ cyberark_session.token }}"
+      no_log: yes
+
+    - name: Onboard MySQL Local User to CyberArk EPV
+      uri:
+        url: "{{pvwa_url}}/PasswordVault/api/Accounts/"
+        headers:
+          Content-Type: application/json
+          Authorization: "{{ cyberark_authn_token }}"
+        method: POST 
+        status_code: 201
+        body:
+          name: "MYSQL-DEMO-USER"
+          address: "rhel01.192.168.3.104.xip.io"
+          userName: "{{ mysql_username }}"
+          platformId: "MySQL"
+          safeName: "D-MYSQL-LOCAL-USERS"
+          secretType: "password"
+          secret: "{{ mysql_password }}"
+          secretManagement:
+            automaticManagementEnabled: yes
+        body_format: json
+        validate_certs: no
+
+    - name: Logoff from CyberArk Web Services
+      cyberark_authentication:
+        state: absent 
+        cyberark_session: "{{ cyberark_session }}"
