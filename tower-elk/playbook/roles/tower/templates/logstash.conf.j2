@@ -1,0 +1,25 @@
+input { 
+  http {
+    port => 5055
+  }
+}
+
+filter {
+    json {
+      source => "message"
+      remove_field => [ "headers", "[event_data][res][ansible_facts][ansible_interfaces]" ]
+    }
+    
+    mutate {
+      convert => {"[event_data][res][ansible_facts][ansible_python][version_info]" => "string"}
+      convert => {"[host]" => "string"}
+    }  
+}
+
+
+output {
+  elasticsearch {
+      hosts => "{{kibana_elasticsearch_url}}"
+      index => "tower-%{+YYYY.MM.dd}"
+    }
+}

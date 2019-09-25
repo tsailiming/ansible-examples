@@ -1,0 +1,3 @@
+- src: geerlingguy.elasticsearch
+- src: geerlingguy.logstash
+- src: geerlingguy.kibana

@@ -1,0 +1,54 @@
+---
+- name: Clean up Logstash conf.d
+  shell: /usr/bin/rm -f /etc/logstash/conf.d/*.conf
+  args:
+    warn: false
+
+- name: Copy Logstash config
+  template:
+    src: logstash.conf.j2
+    dest: /etc/logstash/conf.d/logstash.conf
+
+- name: Restart Logstash
+  service:
+    name: logstash
+    state: restarted
+
+- name: Fix Kibana config
+  lineinfile:
+    path: /etc/kibana/kibana.yml 
+    regexp: '^elasticsearch\.url'
+    line: "elasticsearch.hosts: {{ kibana_elasticsearch_url }}"
+    backrefs: yes
+
+- name: Restart Kibana
+  service:
+    name: kibana
+    state: restarted
+
+- name: "Wait for Kibana to come up"
+  uri:
+    url: "http://{{ inventory_hostname }}:{{kibana_server_port}}"
+    status_code: 200
+  register: result
+  until: result.status == 200
+  retries: 60
+  delay: 5
+
+- name: Upload saved objects to Kibana
+  shell: 'curl http://{{ inventory_hostname }}:{{kibana_server_port}}/api/saved_objects/_import?overwrite=true  -H "kbn-xsrf: true" --form file=@{{playbook_dir}}/roles/tower/files/export.ndjson'
+  retries: 3
+  delay: 10
+  register: result
+  until: result.rc == 0
+  become: no
+  delegate_to: localhost
+  args:
+    warn: false
+
+- name: Load Tower index template
+  uri:
+    url: "{{kibana_elasticsearch_url}}/_template/tower_template"
+    method: PUT
+    body_format: json
+    src: template.json
