@@ -1,4 +1,4 @@
-# Log forwarding to ELK stack
+# Ansible Tower log forwarding to ELK stack
 
 ## Requirements
 
