@@ -4,7 +4,7 @@
 
 Install Red Hat Enterprise Linux 7 or CentOS 7. 
 
-## Installation steps
+## Installation Steps
 
 The playbook will install ELK on a single vm, configure Logstash and load in a sample dashboard/visualization into Kibana.
   ```
@@ -23,3 +23,6 @@ Under Settings -> System -> Logging. Fill up the following fields
 - Logging Aggregator Type: logstash
 
 ![](images/tower.png)
+
+## TODO
+- Configure SSL for Logstash
