@@ -9,7 +9,7 @@ Install Red Hat Enterprise Linux 7 or CentOS 7.
 The playbook will install ELK on a single vm, configure Logstash and load in a sample dashboard/visualization into Kibana.
   ```
   $ ansible-galaxy install -r playbook/requirements.yml 
-  $ ansible-playbook playbook/install-elk.yml 
+  $ ansible-playbook -i your-ip, -u root playbook/install-elk.yml 
   ```
 
 You should get a sample dashboard on Kibana:
