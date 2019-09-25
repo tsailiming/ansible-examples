@@ -13,7 +13,7 @@ The playbook will install ELK on a single vm, configure Logstash and load in a s
   ```
 
 You should get a sample dashboard on Kibana:
-![](images\dashboard.png)
+![](images/dashboard.png)
 
 ## Configure Tower
 
