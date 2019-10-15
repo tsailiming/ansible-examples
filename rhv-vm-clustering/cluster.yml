@@ -1,0 +1,17 @@
+- hosts: servers
+  any_errors_fatal: true
+  vars:
+    cluster_configure_fence_rhevm: true
+    fence_rhevm_ipaddr: 
+    fence_rhevm_passwd: 
+    fence_rhevm_login: 
+    fence_rhevm_ssl_insecure: 1
+    fence_rhevm_ssl: 1 
+    fence_rhevm_inet4_only: 1
+
+    vips:
+      - name: www_vip
+        ipaddr: 192.168.0.171
+        resource_group: webapp
+  roles:
+     - { role: 'ansible.ha-cluster-pacemaker', cluster_name: 'rhv-cluster' }

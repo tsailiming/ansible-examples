@@ -1,0 +1,3 @@
+[servers]
+192.168.0.169 vm_name=cluster1
+192.168.0.170 vm_name=cluster2
