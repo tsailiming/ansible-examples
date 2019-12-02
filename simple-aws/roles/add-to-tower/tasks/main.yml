@@ -38,6 +38,7 @@
     user: "{{tower_username}}"
     password: "{{tower_password}}"
     body_format: json
+    force_basic_auth: yes
     validate_certs : no
   register: group_out
   
@@ -54,6 +55,7 @@
     status_code: 201, 204
     user: "{{tower_username}}"
     password: "{{tower_password}}"
+    force_basic_auth: yes
     body_format: json
     validate_certs : no
   with_indexed_items: "{{ ec2.instances }}"
