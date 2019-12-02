@@ -34,7 +34,7 @@
 
 - name: Copy eap file
   copy:
-    src: jboss-eap-7.2.0.zip
+    src: "{{ jboss_eap_zip }}"
     dest: /opt/jboss-eap
     mode: 0600
 
