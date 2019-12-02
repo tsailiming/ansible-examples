@@ -1,0 +1,10 @@
+---
+# This playbook deploys simple applications to JBoss server
+- name: Deploy Simple Application to JBoss Server
+  hosts: all
+  remote_user: ec2-user
+  become: true
+  gather_facts: False
+
+  roles:
+    - jboss-eap-app-deploy

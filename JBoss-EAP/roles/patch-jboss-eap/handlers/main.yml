@@ -1,0 +1,8 @@
+---
+# handlers file for patch-jboss-eap
+- name: start jboss
+  shell:
+    cmd: nohup /opt/jboss-eap/bin/standalone.sh -b 0.0.0.0 -bmanagement 0.0.0.0 &
+
+  #vars:
+  # cmd: >- reload 

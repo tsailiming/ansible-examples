@@ -1,0 +1,23 @@
+---
+# tasks file for jboss-eap-app-deploy
+- name: Copy application WAR file to host
+  copy:
+    src: kitchensink.war
+    dest: /tmp
+
+- name: Deployment of new application
+  jboss:
+    deployment: "kitchensink.war"
+    deploy_path: "{{ jboss_app_deployment_path }}"
+    src: "/tmp/kitchensink.war"
+    state: present
+    #when: upgrade == 'False'
+
+  #- name: Upgrade Application
+  #  jboss:
+  #    deployment: "{{ app_name }}.war"
+  #    deploy_path: "{{ jboss_app_deployment_path }}"
+  #    src: "/tmp/{{ war_file }}"
+  #    state: present
+  #  when: upgrade == 'True'
+

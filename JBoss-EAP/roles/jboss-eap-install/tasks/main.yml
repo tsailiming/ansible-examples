@@ -1,0 +1,118 @@
+---
+# tasks file for jboss-eap-install
+- include_vars: management_user.yml
+
+- name: Install Java 1.8.0 and Unzip
+  yum:
+    name:
+      - 'java-1.8.0-openjdk-devel'
+      - 'unzip'
+    state: present
+
+- name: Remove JBoss Application Server Directory if it Exists
+  file:
+    path: /opt/jboss-eap
+    state: absent
+
+- name: Create group "jboss"
+  group:
+    name: jboss
+
+- name: Create user "jboss"
+  user:
+    name: jboss
+    group: jboss
+    home: /opt/jboss-eap
+
+- name: Ensure JBoss Application Server Directory Exists
+  file:
+    path: /opt/jboss-eap
+    owner: jboss
+    group: jboss
+    state: directory
+    mode: 0755
+
+- name: Copy eap file
+  copy:
+    src: jboss-eap-7.2.0.zip
+    dest: /opt/jboss-eap
+    mode: 0600
+
+- name: Extract archive
+  unarchive:
+    src: /opt/jboss-eap/jboss-eap-7.2.0.zip
+    dest: /opt/jboss-eap
+    remote_src: yes
+
+- name: Move Files into Right Directory
+  shell: mv /opt/jboss-eap/jboss-eap-7.2/* /opt/jboss-eap/
+
+- name: Remove jboss-eap-7.2 Final Directory
+  file:
+    path: /opt/jboss-eap/jboss-eap-7.2
+    state: absent
+
+
+    #  - name: Download and use jboss-module-1.1.5.GA instead
+    #    get_url:
+    #      url: http://repo1.maven.org/maven2/org/jboss/modules/jboss-modules/1.1.5.GA/jboss-modules-1.1.5.GA.jar
+    #      dest: /opt/jboss-as/jboss-modules.jar
+    #      force: yes
+
+- name: Change ownership of JBoss installation
+  file:
+    path: /opt/jboss-eap/
+    owner: jboss
+    group: jboss
+    state: directory
+    recurse: yes
+
+    #- name: start jboss_eap
+    #command: /opt/jboss-eap/bin/standalone.sh &
+- name: create Management User
+  command: "{{ jboss_eap_home }}/bin/add-user.sh {{ management_username }} {{ management_password }}"
+
+- name: Change the working directory to eap before executing the command.
+  shell: 
+    cmd: nohup /opt/jboss-eap/bin/standalone.sh -b 0.0.0.0 -bmanagement 0.0.0.0 & 
+
+#  - name: Create standalone.xml configuration file
+#    template:
+#      src: standalone.xml.j2
+#      dest: /opt/jboss-as/standalone/configuration/standalone.xml
+#    notify: restart jboss
+#
+#  - name: Copy the init script
+#    copy:
+#      src: jboss-as-standalone.sh
+#      dest: /etc/init.d/jboss
+#      mode: 0755
+#
+#  - name: Enable and Start JBoss
+#    service:
+#      name: jboss
+#      state: started
+#      enabled: true
+- name: Ensure that firewalld is installed
+  yum:
+    name: firewalld
+    state: latest
+
+- name: Ensure that firewalld is started and enabled at boot
+  service:
+    name: firewalld
+    state: started
+    enabled: true
+
+- name: Deploy firewalld rules
+  firewalld:
+    immediate: yes
+    permanent: yes
+    port: "{{ item }}"
+    state: enabled
+  loop:
+    - "{{ jboss_http_port }}/tcp"
+    - "{{ jboss_https_port }}/tcp"
+    - "{{ jboss_management_http_port }}/tcp"
+    - "{{ jboss_management_https_port }}/tcp"
+
