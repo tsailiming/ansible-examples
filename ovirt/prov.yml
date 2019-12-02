@@ -4,8 +4,8 @@
   gather_facts: false
 
   vars:
-    ip_address: "192.168.0.179"
-    host_name: "test-scap.lab.ltsai.com"
+    ip_address: "192.168.0.180"
+    host_name: "test-scap1.lab.ltsai.com"
 
     memory: 2
     cpu_cores: 2
@@ -13,8 +13,8 @@
     ovirt_host: rhvm.lab.ltsai.com
     ovirt_username: admin@internal
     ovirt_password: system
+    vm_password: super_password
 
-   
   tasks:
     - name: Obtain oVirt SSO token with using username/password credentials
       ovirt_auth:
@@ -31,15 +31,15 @@
       when: ovirt_host is not defined
 
     - name: Provision VM
-      ovirt_vms:
+      ovirt_vm:
         auth: "{{ ovirt_auth }}"
         name: "{{ host_name }}"
-        template: rhel_7_5_w_cloud_user
+        template: rhel_7_6_w_cloud_user
         cluster: Default
         memory: "{{ memory }}GiB"
         cpu_cores: "{{ cpu_cores }}"
         cpu_sockets: 1
-        clone: yes
+        clone: no
         state: running
         cloud_init:
           host_name: "{{ host_name }}"
@@ -51,26 +51,37 @@
           dns_search: lab.ltsai.com
           nic_name: eth0
           nic_on_boot: true
-          user_name: root
-          root_password: super_password 
+          #user_name: root
+          #root_password: "{{ vm_password }}" 
+          custom_script: |
+            ssh_pwauth: True
+            disable_root: True
+            users:
+            - name: ansible
+              sudo: ["ALL=(ALL) NOPASSWD:ALL"]
+              lock_passwd: false
+              passwd: "{{ vm_password | password_hash('sha512') }}"
+            runcmd:
+            - ["touch", "/etc/cloud/cloud-init.disabled"]            
+        cloud_init_persist: True
 
-    - name: Wait for all the vms to initialize
-      pause:
-        seconds: 15
+#     - name: Wait for all the vms to initialize
+#       pause:
+#         seconds: 15
 
-    - name: Wait for SSH to be up
-      local_action: wait_for host={{ ip_address }} port=22 state=started delay=5
-      become: no
+#     - name: Wait for SSH to be up
+#       local_action: wait_for host={{ ip_address }} port=22 state=started delay=5
+#       become: no
 
-    - add_host:
-        name: "{{ ip_address }}"
+#     - add_host:
+#         name: "{{ ip_address }}"
         
-- hosts: all
-  gather_facts: no
-  become: yes
+# - hosts: all
+#   gather_facts: no
+#   become: yes
 
-  tasks:
-    - name: Disable cloud-init
-      file: 
-        name: /etc/cloud/cloud-init.disabled
-        state: touch
+#   tasks:
+#     - name: Disable cloud-init
+#       file: 
+#         name: /etc/cloud/cloud-init.disabled
+#         state: touch
