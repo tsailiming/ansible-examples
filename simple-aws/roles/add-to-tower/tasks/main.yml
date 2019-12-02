@@ -1,7 +1,7 @@
 ---
 - name: Add tower inventory
   tower_inventory:
-    name: "{{ tower_inventory_name }}"
+    name: "{{ inventory_name }}"
     organization: Default
     state: present
     tower_host: "{{ tower_host }}"
@@ -12,7 +12,7 @@
 - name: Add tower group
   tower_group:
     name: "{{ ec2_server_group_name }}"
-    inventory: "{{ tower_inventory_name }}"
+    inventory: "{{ inventory_name }}"
     state: present
     tower_host: "{{ tower_host }}"
     tower_username: "{{ tower_username }}"
@@ -22,7 +22,7 @@
 - name: Add tower host
   tower_host:
     name: "{{ name_prefix + '%02d' | format(item.0 + name_start_index) }}"
-    inventory: "{{ tower_inventory_name }}"
+    inventory: "{{ inventory_name }}"
     state: present
     tower_host: "{{ tower_host }}"
     tower_username: "{{ tower_username }}"
@@ -34,7 +34,7 @@
 # https://github.com/ansible/ansible/issues/29149
 - name: Find group
   uri:
-    url: "https://{{tower_host}}/api/v2/groups/?name={{ ec2_server_group_name}}&&inventory__name={{ tower_inventory_name }}"
+    url: "https://{{tower_host}}/api/v2/groups/?name={{ ec2_server_group_name}}&&inventory__name={{ inventory_name }}"
     user: "{{tower_username}}"
     password: "{{tower_password}}"
     body_format: json

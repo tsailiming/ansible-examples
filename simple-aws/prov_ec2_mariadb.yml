@@ -26,7 +26,7 @@
         WBS_CODE: ISG18-B3B
         Vendor: RedHat
     
-    - tower_inventory_name: "VMANSADV"
+    - inventory_name: "VMANSADV"
     #- tower_host: 
     #- tower_username: 
     #- tower_password: 
