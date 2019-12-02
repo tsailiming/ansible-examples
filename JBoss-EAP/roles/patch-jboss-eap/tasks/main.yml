@@ -21,7 +21,7 @@
   # directory of the JBoss EAP Server prior to running this task
   - name: Copy {{ jboss_eap_patch_artifact_name }} to {{ jboss_patch_files_directory }}
     copy:
-      src: "/tmp/{{ jboss_eap_patch_artifact_name }}"
+      src: "/tmp/{{ jboss_eap_patch_artifact_name | basename }}"
       dest: "{{ jboss_patch_files_directory }}/{{ jboss_eap_patch_artifact_name }}"
       owner: jboss
       group: jboss
