@@ -1,48 +1,50 @@
 ---
 - hosts: localhost
   connection: local
-  setup: false
-  
+  gather_facts: no
+
   vars:
-    pvwa_url: "https://pvwa.192.168.3.102.xip.io"
-    cyberark_app_id: "ansible"
-    cyberark_account_name: 
-    cyberark_account_address:
-    cyberark_account_username:
-    cyberark_account_platformid:
-    cyberark_account_safename:
+    pvwa_url: "https://xxx.xxx.xxx.xxx"
+
+    cyberark_app_id: "APP_Ansible"
+    cyberark_account_name: "{{ vm_hostname }}-{{ vm_username }}"
+    cyberark_account_address: "{{ vm_ip }}"
+    cyberark_account_username: "{{ vm_username }}"
+    cyberark_account_platformid: "UnixSSH"
+    cyberark_account_safename: "Ansible"
     cyberark_account_secrettype: "password"
-    cyberark_account_secret:
+    cyberark_account_secret: "{{ vm_password }}"
+    cyberark_account_devicetype: "Operating System"
+    cyberark_account_policyid: "UnixSSH"
 
   tasks:
     - name: Retrieve REST API Service Account for Onboarding to CyberArk
-      cyberark_authentication: "{{ pvwa_url }} "
-        api_base_url: 
-        validate_certs: no
-        client_cert: ""
-        client_key: "" 
-        app_id: "{{cyberark_app_id}}"
-        query: "Safe=D-CYBR-RESTAPI-ACCTS;Folder=Root;Object=ANSIBLE-RESTAPI-USER"
+      uri:
+       url: "{{pvwa_url}}/AIMWebService/api/Accounts?AppID={{cyberark_app_id}}&Safe=Ansible&Folder=Root&Object=10.246.32.18-Ansible"
+       headers:
+         Content-Type: "application/json"
+       validate_certs: no
+       return_content: yes
       register: cyberark_user_response
-      delegate_to: localhost
-      no_log: yes
+
+    #- debug: var=cyberark_user_response
 
     - name: Set REST API Username to Fact Named cyberark_secret_username
       set_fact:
-        cyberark_secret_username: "{{ cyberark_user_response.result.UserName }}"
+        cyberark_secret_username: "{{ cyberark_user_response.json.UserName }}"
       no_log: yes
-    
+
     - name: Set REST API User Password to Fact Named cyberark_secret_userpass
       set_fact:
-        cyberark_secret_userpass: "{{ cyberark_user_response.result.Content }}"
+        cyberark_secret_userpass: "{{ cyberark_user_response.json.Content}}"
       no_log: yes
 
     - name: Authenticate to CyberArk Web Services
       cyberark_authentication:
-        api_base_url: "{{ pvwa_url }} "
+        api_base_url: "{{ pvwa_url }}"
         validate_certs: no
-        username: "{{ cyberark_rest_user }}"
-        password: "{{ cyberark_rest_pass }}"
+        username: "{{ cyberark_secret_username }}"
+        password: "{{ cyberark_secret_userpass }}"
 
     - name: Set CyberArk Authn Token to Fact Named cyberark_authn_token
       set_fact:
@@ -51,40 +53,16 @@
 
     - name: Onboard User to CyberArk EPV
       uri:
-        url: "{{pvwa_url}}/PasswordVault/api/Accounts/"
+        url: "{{pvwa_url}}/PasswordVault/WebServices/PIMServices.svc/Account"
         headers:
           Content-Type: application/json
           Authorization: "{{ cyberark_authn_token }}"
-        method: POST 
+        method: POST
         status_code: 201
-        body:
-          name: "{{ cyberark_account_name }}"
-          address: "{{ cyberark_account_address }}"
-          userName: "{{ cyberark_account_username }}"
-          platformId: "{{ cyberark_account_platformid }}"
-          safeName: "{{ cyberark_account_safename }}"
-          secretType: "{{ cyberark_account_secrettype }}"
-          secret: "{{ cyberark_account_secret }}"
-          secretManagement:
-            automaticManagementEnabled: yes
         body_format: json
         validate_certs: no
+        timeout: 120
+        body: "{{ lookup('template', 'templates/onboard_user.json.j2') }}"
       register: cyberark_account_response
 
-    - name: Set CyberArk Account ID to Fact Named cyberark_account_id
-      set_fact:
-        cyberark_account_id: "{{ cyberark_account_response.json.id }}"
-      
-    - name: Change credential immediately
-      uri:
-        url: "{{pvwa_url}}/PasswordVault/api/Accounts/{{cyberark_account_id}}/Change"
-        headers:
-          Content-Type: application/json
-          Authorization: "{{ cyberark_authn_token }}"
-        method: POST 
-        status_code: 200
-
-    - name: Logoff from CyberArk Web Services
-      cyberark_authentication:
-        state: absent 
-        cyberark_session: "{{ cyberark_session }}"
+    - debug: var=cyberark_account_response
