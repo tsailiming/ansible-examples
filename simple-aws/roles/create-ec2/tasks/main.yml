@@ -58,7 +58,7 @@
 
 - debug: var=ansible_ec2_use_public_ip
 
-- Name: Show which ip/dns name wait_for will use
+- name: Show which ip/dns name wait_for will use
   debug: msg="{{ item.public_dns_name if ansible_ec2_use_public_ip else item.private_ip }}"
   with_items: "{{ ec2.instances }}"
   when: '"windows" not in ami_name'
