@@ -22,6 +22,9 @@ openshift_docker_insecure_registries="sat6.lab.ltsai.com:5000"
 openshift_docker_additional_registries="sat6.lab.ltsai.com:5000"
 openshift_examples_modify_imagestreams=True
 
+openshift_router_selector='region=infra'
+openshift_registry_selector='region=infra'
+
 # host group for masters
 [masters]
 ocp1-master1.lab.ltsai.com

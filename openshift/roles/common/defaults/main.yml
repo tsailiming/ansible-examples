@@ -10,3 +10,4 @@ packages:
   - wget 
   - net-tools 
   - kexec-tools
+  - libselinux-python
