@@ -3,7 +3,7 @@ web_instance_type: t2.micro
  
 ami_id: ami-f068a193 # Centos 7 in ap-southeast-1
 
-web_instance_count: 3
+web_instance_count: 1
 ec2_volume_size: 8
 
 web_security_groups:

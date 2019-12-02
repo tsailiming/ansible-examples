@@ -12,16 +12,19 @@ az: "{{ vpc_region }}a"
 vpc_subnets:
   - cidr: "{{ public_cidr }}" # Public Subnet-1
     az: "{{ az }}"
+    map_public: true
     resource_tags: 
       Name: "{{ vpc_name }}-{{ az }}-public-subnet"
 
   - cidr: "{{ web_cidr }}" # Web Subnet
     az: "{{ az }}"
+    map_public: true
     resource_tags: 
       Name: "{{ vpc_name }}-{{ az }}-web-subnet"
 
   - cidr: "{{ db_cidr }}" # DB Subnet
     az: "{{ az }}"
+    map_public: true
     resource_tags: 
       Name: "{{ vpc_name }}-{{ az }}-db-subnet"
 

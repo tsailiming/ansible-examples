@@ -2,3 +2,4 @@
  application: my-app
  server_role: webserver
  db_role: dbserver
+ firewall_role: firewall

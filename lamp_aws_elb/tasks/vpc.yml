@@ -20,6 +20,7 @@
     vpc_id: "{{ vpc_id }}"
     cidr: "{{ item.cidr }}"
     resource_tags: "{{ item.resource_tags }}"
+    map_public: "{{ item.map_public}}"
   with_items: "{{ vpc_subnets }}"
   register: subnet
 
