@@ -78,3 +78,7 @@
     name: "{{ item.public_dns_name if ansible_ec2_use_public_ip else item.private_ip }}"
     group: " {{ec2_server_group_name }}"
   with_items: "{{ ec2.instances }}"
+
+- set_stats:
+    data:
+      instance_id: "{{ new_vm_uuid }}"
