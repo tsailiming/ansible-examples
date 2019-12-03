@@ -7,6 +7,9 @@
     region: ap-southeast-1
 
   tasks:
+    - debug:
+        var: instance_id
+        
     - name: Get EC2 instance info
       ec2_instance_info:
         region: "{{ region }}"
