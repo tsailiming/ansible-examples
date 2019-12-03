@@ -14,4 +14,4 @@
   tasks:
     - fail:
         msg: Fail Patch
-      when: patch_fail
+      when: patch_fail | bool
