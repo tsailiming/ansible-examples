@@ -1,0 +1,88 @@
+- hosts: localhost
+  connection: local
+  gather_facts: false
+  
+  vars:
+    instance_id: 
+    region: ap-southeast-1
+    trimmed_ec2_snapshots: []
+
+  tasks:
+    - name: Get EC2 instance info
+      ec2_instance_info:
+        region: "{{ region }}"
+        instance_ids: "{{ instance_id }}"
+      register: ec2
+
+    - name: Get EC2 instance volumes
+      ec2_vol_info:
+        filters:
+          attachment.instance-id: "{{ instance_id }}"
+      register: volumes
+
+    # - debug:
+    #     var: volumes
+
+    - name: Get snapshots to restore
+      ec2_snapshot_info:
+        region: "{{ region }}"       
+        filters:
+          volume-id: "{{item.id}}"
+          status: completed
+          "tag:device": "{{item.attachment_set.device}}"
+      loop: "{{volumes.volumes}}"
+      loop_control:
+        label: "{{ item.id }}"
+      register: ec2_snapshots
+
+    # - debug:
+    #     var: ec2_snapshots
+
+    - name: Get a latest snapshot per volume
+      set_fact:
+        trimmed_ec2_snapshots: "{{ trimmed_ec2_snapshots | default([]) + [item.snapshots|sort(attribute='start_time')|reverse|map(attribute='snapshot_id')| list | first ] }}"
+      when: item.snapshots|sort(attribute='start_time')|reverse|map(attribute='snapshot_id')| list | length > 0 
+      loop: "{{ ec2_snapshots.results }}"
+      loop_control:
+        label: "{{ item.item.id }}"
+
+    - name: Show list of snapshots to restore
+      debug:
+        var: trimmed_ec2_snapshots
+
+    - name: Stop EC2 instance
+      ec2:
+        region: "{{ region }}"
+        instance_ids: "{{ ec2.instances[0].instance_id }}"
+        state: stopped
+        wait: yes
+
+    - name: Detach volume from instance
+      ec2_vol:
+        region: "{{ region }}"
+        instance: None
+        id: "{{ ec2_snapshots.results | json_query(query) }}"
+      loop: "{{ trimmed_ec2_snapshots }}"
+      loop_control:
+        label: "{{ ec2_snapshots.results | json_query(query) }}"
+      vars:
+        query: "[].snapshots[?snapshot_id == '{{ item  }}'][] | [0].volume_id"
+    
+    - name: Create volume from snapshot
+      ec2_vol:
+        region: "{{ region }}"
+        instance: "{{ instance_id }}"
+        snapshot: "{{ item }}"
+        device_name: "{{ ec2_snapshots.results | json_query(query) }}"
+      loop: "{{ trimmed_ec2_snapshots }}"
+      loop_control:
+        label: "{{ item }}"
+      vars:
+        query: "[].snapshots[?snapshot_id == '{{ item  }}'][].tags.device | [0]"
+
+    - name: Start EC2 instance
+      ec2:
+        region: "{{ region }}"
+        instance_ids: "{{ instance_id }}"
+        state: running
+

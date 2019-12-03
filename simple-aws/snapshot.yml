@@ -1,0 +1,31 @@
+- hosts: localhost
+  connection: local
+  gather_facts: false
+  
+  vars:
+    instance_id: 
+    region: ap-southeast-1
+
+  tasks:
+    - name: Get EC2 instance info
+      ec2_instance_info:
+        region: "{{ region }}"
+        instance_ids: "{{ instance_id }}"
+      register: ec2
+
+    - name: Get EC2 instance volumes
+      ec2_vol_info:
+        region: "{{ region }}"
+        filters:
+          attachment.instance-id: "{{ instance_id }}"
+      register: volumes
+
+    - name: Create snapshot 
+      ec2_snapshot:
+        region: "{{ region }}"
+        volume_id: "{{item.id}}"
+        description: snapshot of {{item.id}}
+        snapshot_tags: "{{ ec2.instances[0].tags | combine({'device':item.attachment_set.device}) }}"
+      loop: "{{volumes.volumes}}"
+      loop_control:
+        label: "{{ item.id }}"
