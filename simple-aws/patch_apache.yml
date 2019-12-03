@@ -6,6 +6,12 @@
     package_name: httpd
     service_name: httpd
     ec2_server_region: 'ap-southeast-1'
+    patch_fail: false
     
   roles:
     - patch-package
+
+  tasks:
+    - fail:
+        msg: Fail Patch
+      when: patch_fail
