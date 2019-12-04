@@ -46,3 +46,12 @@
         instance_ids: "{{ instance_id }}"
         wait: yes  
         state: running
+
+    - name: Wait for SSH
+      wait_for: 
+        host: "{{ ec2.instances[0].public_dns_name }}"
+        port: 22
+        delay: 25
+        timeout: 320
+        state: started
+      
