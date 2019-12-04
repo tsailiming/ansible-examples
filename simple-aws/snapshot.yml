@@ -28,6 +28,7 @@
         region: "{{ region }}"
         volume_id: "{{item.id}}"
         description: snapshot of {{item.id}}
+        device_name: item.attachment_set.device
         snapshot_tags: "{{ ec2.instances[0].tags | combine({'device':item.attachment_set.device}) }}"
       loop: "{{volumes.volumes}}"
       loop_control:
