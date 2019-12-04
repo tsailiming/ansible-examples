@@ -45,4 +45,4 @@
         region: "{{ region }}"
         instance_ids: "{{ instance_id }}"
         wait: yes  
-        state: started
+        state: running
