@@ -38,3 +38,9 @@
       loop: "{{volumes.volumes}}"
       loop_control:
         label: "{{ item.id }}"
+
+    - name: Start EC2 instance
+      ec2:
+        region: "{{ region }}"
+        instance_ids: "{{ instance_id }}"
+        state: started  
