@@ -47,6 +47,7 @@
 
 - name: Associate new elastic IP with instance
   ec2_eip:
+    region: "{{ ec2_server_region }}"
     device_id: "{{ item.id }}"
   with_items: "{{ ec2.instances }}"    
   register: eips
