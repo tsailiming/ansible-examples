@@ -23,8 +23,11 @@
           attachment.instance-id: "{{ instance_id }}"
       register: volumes
 
-    - pause:
-        seconds: 10    
+    - name: Stop EC2 instance
+      ec2:
+        region: "{{ region }}"
+        instance_ids: "{{ instance_id }}"
+        state: stopped  
 
     - name: Create snapshot 
       ec2_snapshot:
