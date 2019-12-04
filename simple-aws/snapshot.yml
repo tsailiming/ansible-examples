@@ -23,6 +23,9 @@
           attachment.instance-id: "{{ instance_id }}"
       register: volumes
 
+    - pause:
+        seconds: 10    
+        
     - name: Create snapshot 
       ec2_snapshot:
         region: "{{ region }}"
