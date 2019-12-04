@@ -27,6 +27,7 @@
       ec2:
         region: "{{ region }}"
         instance_ids: "{{ instance_id }}"
+        wait: yes  
         state: stopped  
 
     - name: Create snapshot 
@@ -43,4 +44,5 @@
       ec2:
         region: "{{ region }}"
         instance_ids: "{{ instance_id }}"
-        state: started  
+        wait: yes  
+        state: started
