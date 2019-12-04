@@ -45,6 +45,12 @@
    
 - debug: var=new_vm_uuid
 
+- name: Associate new elastic IP with instance
+  ec2_eip:
+    device_id: "{{ item.id }}"
+  with_items: "{{ ec2.instances }}"    
+  register: eips
+  
 - name: Gather facts about an AMI using ami-id
   ec2_ami_facts:
     region: "{{ ec2_server_region }}"
