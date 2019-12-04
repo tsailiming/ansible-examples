@@ -54,7 +54,7 @@
   register: eips
   
 # Refresh facts after assigning eip
-- name: Get EC2 instance info
+- name: Refresh EC2 instance info
   ec2_instance_info:
     region: "{{ ec2_server_region }}"
     instance_ids: "{{ ec2.instance_ids }}"
