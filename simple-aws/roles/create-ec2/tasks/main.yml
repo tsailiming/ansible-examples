@@ -12,7 +12,7 @@
     wait_timeout: 600
     count: "{{ ec2_server_instcount }}"
   register: ec2
-  
+
 - debug: var=ec2
 
 - name: Instance Ids
@@ -53,6 +53,13 @@
   with_items: "{{ ec2.instances }}"    
   register: eips
   
+# Refresh facts after assigning eip
+- name: Get EC2 instance info
+  ec2_instance_info:
+    region: "{{ region }}"
+    instance_ids: "{{ ec2.instance_ids }}"
+  register: ec2
+
 - name: Gather facts about an AMI using ami-id
   ec2_ami_facts:
     region: "{{ ec2_server_region }}"
