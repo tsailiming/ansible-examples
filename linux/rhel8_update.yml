@@ -1,0 +1,11 @@
+---
+- name: Update VM
+  hosts: web
+  become: yes
+  gather_facts: no
+
+  tasks:
+    - name: Upgrade all packages
+      yum:
+        name: '*'
+        state: latest
